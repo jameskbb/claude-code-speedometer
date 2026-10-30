@@ -1,0 +1,5 @@
+{
+  "name": "claude-code-speedometer",
+  "owner": { "name": "jameskbb" },
+  "plugins": [{ "name": "speedometer", "source": "./" }]
+}

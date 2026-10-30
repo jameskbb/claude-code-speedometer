@@ -1,0 +1,68 @@
+{
+  "name": "speedometer",
+  "version": "0.5.0",
+  "description": "A pane with a context-window speedometer, an activity badge, rate limits, cost, model and turn stats",
+  "author": {
+    "name": "jameskbb"
+  },
+  "license": "MIT",
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "theme": {
+      "type": "string",
+      "title": "Gauge cluster",
+      "description": "The look of the pane. classic: three plain dials. minimal: no gauges, only context, cost, model, turns and agents. Plain styles: bars, rings, battery, digital, columns. Vehicle dashboards: corvette-c4, mustang-terminator, lamborghini-huracan, porsche-911, ferrari-f40, tron-lightcycle, f1-wheel, skyline-r34, knight-rider, bel-air-1957, delorean, wrx-gc8. Beyond the road: vu-meter, weather-station, steampunk, hourglass, retro-arcade.",
+      "options": [
+        "classic",
+        "minimal",
+        "bars",
+        "rings",
+        "battery",
+        "digital",
+        "columns",
+        "corvette-c4",
+        "mustang-terminator",
+        "lamborghini-huracan",
+        "porsche-911",
+        "ferrari-f40",
+        "tron-lightcycle",
+        "f1-wheel",
+        "skyline-r34",
+        "knight-rider",
+        "bel-air-1957",
+        "delorean",
+        "wrx-gc8",
+        "vu-meter",
+        "weather-station",
+        "steampunk",
+        "hourglass",
+        "retro-arcade"
+      ],
+      "default": "classic"
+    },
+    "wallClock": {
+      "type": "boolean",
+      "title": "Count every hour",
+      "description": "Project burn rate over every hour of every day. Off: only the work day set below, Monday to Friday unless Count weekends is on.",
+      "default": true
+    },
+    "workStart": {
+      "type": "string",
+      "title": "Work day starts",
+      "description": "Used only when Count every hour is off: projections count time from this to the end of the work day, as HH:MM local. Equal start and end counts every hour.",
+      "default": "08:00"
+    },
+    "workEnd": {
+      "type": "string",
+      "title": "Work day ends",
+      "description": "Used only when Count every hour is off. HH:MM local.",
+      "default": "17:00"
+    },
+    "weekends": {
+      "type": "boolean",
+      "title": "Count weekends",
+      "description": "Used only when Count every hour is off: count Saturday and Sunday in projections. Off: Monday to Friday only.",
+      "default": false
+    }
+  }
+}
