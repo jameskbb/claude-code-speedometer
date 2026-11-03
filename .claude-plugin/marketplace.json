@@ -1,5 +1,15 @@
 {
   "name": "claude-code-speedometer",
-  "owner": { "name": "jameskbb" },
-  "plugins": [{ "name": "speedometer", "source": "./" }]
+  "owner": {
+    "name": "jameskbb"
+  },
+  "metadata": {
+    "description": "Speedometer: Claude Code usage windows as a gauge cluster beside the chat"
+  },
+  "plugins": [
+    {
+      "name": "speedometer",
+      "source": "./"
+    }
+  ]
 }

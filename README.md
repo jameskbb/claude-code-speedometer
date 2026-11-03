@@ -4,6 +4,13 @@
   <img src="docs/images/readme-title-speedometer.png" alt="Speedometer title card: the headline Your usage windows, read off a GAUGE CLUSTER, over a green, amber and red tick scale, beside the plugin's own classic pane with three half-dials for the 5-hour window at 62% with an empty-in warning, the weekly window at 37% and the Fable weekly window at 84%, over the band and a prompt, with the vu-meter and tron-lightcycle clusters stacked behind it" width="100%">
 </p>
 
+<p align="center">
+  <a href="https://github.com/jameskbb/claude-code-speedometer/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/jameskbb/claude-code-speedometer/ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=CI"></a>
+  <a href=".claude-plugin/plugin.json"><img alt="Version" src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fjameskbb%2Fclaude-code-speedometer%2Fmain%2F.claude-plugin%2Fplugin.json&query=%24.version&style=for-the-badge&logo=github&logoColor=white&label=Version&color=2e6b4e"></a>
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/github/license/jameskbb/claude-code-speedometer?style=for-the-badge&color=blue&label=License"></a>
+  <a href="#install"><img alt="Claude Code plugin" src="https://img.shields.io/badge/Claude%20Code-plugin-d97757?style=for-the-badge"></a>
+</p>
+
 <p align="center"><b>Your 5-hour, weekly and per-model usage windows as a gauge cluster beside the chat.</b></p>
 
 <p align="center">
@@ -23,7 +30,7 @@ Answer `y` to add the marketplace, then pick a scope. The pane opens on its own 
 ## What you see
 
 - **The pane**: three gauges beside the chat, for the 5-hour window, the weekly window and the weekly per-model window (Fable, Opus, whichever your plan scopes), each with its reset time. Meters fill green, then yellow past 50%, then red past 80%.
-- **The band**: one line above the prompt with context usage, an activity badge, session cost, turn stats, running subagents, and the [ponytail](https://github.com/ponytail-dev/ponytail) level when that plugin is active for the project. The engine's `[-]` collapses it.
+- **The band**: one line above the prompt with context usage, an activity badge, session cost, turn stats, running subagents, and the [ponytail](https://github.com/DietrichGebert/ponytail) level when that plugin is active for the project. The engine's `[-]` collapses it.
 - **Warnings**: a window on course to run out before it resets turns red and says when, and a toast warns at 80% and 90% context.
 
 <p align="center">
@@ -383,6 +390,8 @@ scripts/check.sh
 ```
 
 `scripts/check.sh` runs both, a public-safety scan, and a check that the README lists every cluster under its category. A new cluster is a `ThemeDef` in its own file under `hooks/themes/` (importing only from `kit.tsx`), a line in `hooks/themes/index.ts`, an option in `.claude-plugin/plugin.json`, a `tests/theme-<id>.test.tsx`, and an entry in the gallery. Clusters draw only their gauges, and evoke the original through layout, shape and colour rather than logos or wordmarks.
+
+Vehicle, film and series names are trademarks of their owners and are used only to say which dashboard a cluster is modelled on. This project is not affiliated with or endorsed by any of them.
 
 ## License
 

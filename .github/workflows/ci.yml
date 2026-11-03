@@ -1,0 +1,41 @@
+name: CI
+
+# Runs the repository checks on every push and pull request: the plugin
+# manifest, the test suite, the public-safety scan and the README gallery sync.
+# No secrets are used and the token is read-only, so fork pull requests are safe.
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      # The plugin's tests run in Claude Code's own kit (`claude plugin test`),
+      # which needs the CLI but no login. Pinned so a CLI
+      # release cannot break CI without a change here; bump it by hand.
+      - name: Install Claude Code
+        run: npm install --global @anthropic-ai/claude-code@2.1.317
+
+      - name: scripts/check.sh
+        run: |
+          command -v claude
+          bash scripts/check.sh

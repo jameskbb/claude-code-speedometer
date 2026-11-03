@@ -21,7 +21,7 @@ done
 
 if command -v claude >/dev/null 2>&1; then
   claude plugin validate . >/dev/null || { echo "FAIL: plugin manifest"; fail=1; }
-  claude plugin test . 2>&1 | grep -v '^CAPTURE ' ; [ "${PIPESTATUS[0]}" -eq 0 ] || { echo "FAIL: tests"; fail=1; }
+  claude plugin test . || { echo "FAIL: tests"; fail=1; }
 else
   echo "SKIP: claude not on PATH; manifest and tests not run"
 fi
