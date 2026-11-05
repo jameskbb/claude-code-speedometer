@@ -1,6 +1,6 @@
 {
   "name": "speedometer",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "A pane with a context-window speedometer, an activity badge, rate limits, cost, model and turn stats",
   "author": {
     "name": "jameskbb"
