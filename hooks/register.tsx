@@ -37,7 +37,7 @@ const BADGE: Record<SpeedoMode, { glyph: string; label: string; color: Color }> 
   tool: { glyph: '⚙', label: 'tool running', color: 'permission' },
 }
 
-// The corvette cluster, after the 1989 C4 LCD dash: on a black panel, a lit
+// The eighties-digital-dash cluster, after a late-1980s LCD dash: on a black panel, a lit
 // sweep rising left to right that widens toward the top for the 5-hour and
 // model windows, a fuel-style bar with F, half and E marks for the weekly,
 // amber ticks and digits. The unlit scale shows its zones dimly, green then
@@ -110,7 +110,7 @@ export function barCells(percent: number | undefined, warn = false): string {
   return encode(px, pw, ph)
 }
 
-// The mustang-terminator cluster, after the 2003-04 SVT Cobra: white-faced
+// The white-face-muscle cluster, after an early-2000s muscle car: white-faced
 // round gauges in silver bezels, black ticks, a red redline arc and red
 // needle; a big tachometer and speedometer either side of four small
 // 90-degree gauges. No badge: the centre stays no taller than the big gauges.
@@ -172,11 +172,51 @@ export const minorCells = (p: number | undefined, warn = false) => faceCells(MN,
 
 // The built-in clusters, then each theme file's under hooks/themes/.
 // `minimal` draws no gauges: only the session's facts (context, cost, model, turns, agents).
-export const THEMES: readonly string[] = ['corvette-c4', 'mustang-terminator', 'classic', 'minimal', ...EXTRA.map(t => t.id)]
+export const THEMES: readonly string[] = ['eighties-digital-dash', 'white-face-muscle', 'classic', 'minimal', ...EXTRA.map(t => t.id)]
 export type Theme = string
+// Old theme ids, renamed to generic ones, so a /config value saved under one
+// still picks the same cluster.
+export const THEME_ALIASES: Readonly<Record<string, Theme>> = {
+  'corvette-c4': 'eighties-digital-dash',
+  'mustang-terminator': 'white-face-muscle',
+  'lamborghini-huracan': 'hexagon-tft',
+  'porsche-911': 'five-dial-sports',
+  'ferrari-f40': 'spartan-supercar',
+  'tron-lightcycle': 'neon-grid',
+  'f1-wheel': 'race-wheel',
+  'skyline-r34': 'tuner-mfd',
+  'knight-rider': 'scanner-dash',
+  'bel-air-1957': 'fifties-chrome',
+  delorean: 'chrono-console',
+  'wrx-gc8': 'nineties-rally',
+}
+// The theme a /config value picks: a current id, an old id's new one, else classic.
+export function resolveTheme(value: unknown): Theme {
+  const id = typeof value === 'string' ? (THEME_ALIASES[value] ?? value) : undefined
+  return THEMES.find(t => t === id) ?? 'classic'
+}
+// The engine drops a stored value that is not among the field's `options`, so
+// an old id reaches register as unset. This reads the saved value itself and
+// answers its new id, or undefined when no old id is saved.
+export async function savedAlias($: EngineOf): Promise<Theme | undefined> {
+  const configs = (await $.settings.read({ key: 'pluginConfigs' })) as Record<string, { options?: Record<string, unknown> }> | undefined
+  for (const [plugin, config] of Object.entries(configs ?? {})) {
+    if (plugin !== 'speedometer' && !plugin.startsWith('speedometer@')) continue
+    const saved = config?.options?.theme
+    if (typeof saved === 'string' && THEME_ALIASES[saved]) return THEME_ALIASES[saved]
+  }
+  return undefined
+}
+// At session start: a theme saved under an old id is saved again under its new
+// one, so /config shows it, and the new id is answered for this load to draw.
+async function adoptRenamedTheme($: EngineOf): Promise<Theme | undefined> {
+  const renamed = await savedAlias($).catch(() => undefined)
+  if (renamed) await $.config.set({ key: 'speedometer.theme', value: renamed }).catch(() => undefined)
+  return renamed
+}
 // The README category of each theme (Plain is 'classic'): the built-ins here,
 // every other theme from its ThemeDef.
-const BUILTIN_CATEGORY: Record<string, Category> = { 'corvette-c4': 'vehicles', 'mustang-terminator': 'vehicles', classic: 'classic', minimal: 'classic' }
+const BUILTIN_CATEGORY: Record<string, Category> = { 'eighties-digital-dash': 'vehicles', 'white-face-muscle': 'vehicles', classic: 'classic', minimal: 'classic' }
 export function categoryOf(id: Theme): Category {
   const c = BUILTIN_CATEGORY[id] ?? EXTRA.find(t => t.id === id)?.category
   if (!c) throw new Error(`no category for theme ${id}`)
@@ -196,9 +236,9 @@ export function dials(all: SpeedoLimit[], theme: Theme): Dial[] {
   const model = { label: scoped?.label ?? 'model weekly', limit: scoped }
   const extra = EXTRA.find(t => t.id === theme)
   if (extra) return extra.gauges(five, week, model)
-  return theme === 'corvette-c4' ? [{ ...five, ...sweep }, { ...week, ...fuel }, { ...model, ...tach }]
+  return theme === 'eighties-digital-dash' ? [{ ...five, ...sweep }, { ...week, ...fuel }, { ...model, ...tach }]
     // The fuel gauge reads what is left, so its needle drops as the week burns.
-    : theme === 'mustang-terminator' ? [{ ...five, ...major }, { ...week, w: MN, rows: MN / 2, cells: (p, warn) => minorCells(p === undefined ? undefined : 100 - p, warn) }, { ...model, ...major }]
+    : theme === 'white-face-muscle' ? [{ ...five, ...major }, { ...week, w: MN, rows: MN / 2, cells: (p, warn) => minorCells(p === undefined ? undefined : 100 - p, warn) }, { ...model, ...major }]
     : [{ ...five, ...arc(DW) }, { ...week, ...arc(DW) }, { ...model, ...arc(DW) }]
 }
 
@@ -386,12 +426,13 @@ async function refresh($: EngineOf, rl: SpeedoUsage['rateLimits'], h: Hours) {
 }
 
 export const register: Register = (on, options) => {
-  const theme = THEMES.find(t => t === options.theme) ?? 'classic'
+  let theme = resolveTheme(options.theme)
   const hours = parseHours(String(options.workStart ?? '08:00'), String(options.workEnd ?? '17:00'), options.weekends === true, options.wallClock !== false)
   let startedAt = 0
   let tools = 0
 
   on('session.start', async ($, e, next) => {
+    theme = (await adoptRenamedTheme($)) ?? theme
     await $.command.register({ name: 'speedometer', description: 'Open the context speedometer pane' })
     const seed = pick(await $.session.usage())
     await update($, usage, () => seed)
@@ -530,7 +571,7 @@ export const register: Register = (on, options) => {
     const badge = BADGE[m]
     const centered = (text: string, w: number) => ' '.repeat(Math.max(0, Math.floor((w - text.length) / 2))) + text
     const all = dials(l ?? [], theme)
-    const lcd = theme === 'corvette-c4'
+    const lcd = theme === 'eighties-digital-dash'
     const facts = ({ Box, Text, Button }: Pick<ReturnType<typeof $.ui.resolve>, 'Box' | 'Text' | 'Button'>) => [
       <Text>
         <Text dimColor>{'context  '}</Text>
@@ -600,7 +641,7 @@ export const register: Register = (on, options) => {
       return extra.draw(ctx) as ReturnType<typeof facts>[number]
     }
 
-    if (e.surface === 'terminal' && theme === 'mustang-terminator') {
+    if (e.surface === 'terminal' && theme === 'white-face-muscle') {
       const { Box, Text, Button, Raster } = $.ui.resolve(e)
       const [five, week, model] = all as [Dial, Dial, Dial]
       const warned = (d: Dial) => d.limit !== undefined && d.limit.kind in warn

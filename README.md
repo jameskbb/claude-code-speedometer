@@ -1,7 +1,7 @@
 # speedometer
 
 <p align="center">
-  <img src="docs/images/readme-title-speedometer.png" alt="Speedometer title card: the headline Your usage windows, read off a GAUGE CLUSTER, over a green, amber and red tick scale, beside the plugin's own classic pane with three half-dials for the 5-hour window at 62% with an empty-in warning, the weekly window at 37% and the Fable weekly window at 84%, over the band and a prompt, with the vu-meter and tron-lightcycle clusters stacked behind it" width="100%">
+  <img src="docs/images/readme-title-speedometer.png" alt="Speedometer title card: the headline Your usage windows, read off a GAUGE CLUSTER, over a green, amber and red tick scale, beside the plugin's own classic pane with three half-dials for the 5-hour window at 62% with an empty-in warning, the weekly window at 37% and the Fable weekly window at 84%, over the band and a prompt, with the vu-meter and neon-grid clusters stacked behind it" width="100%">
 </p>
 
 <p align="center">
@@ -180,159 +180,159 @@ Three segmented level columns side by side, filling from the bottom like a level
 
 ### Vehicle dashboards (12)
 
-**`corvette-c4`**: the 1989 LCD dash: segmented sweeps and amber readouts.
+**`eighties-digital-dash`**: a late-1980s sports car LCD dash: segmented sweeps and amber readouts.
 
 <p align="center">
-  <img src="docs/images/cluster-corvette-c4.png" alt="The corvette-c4 cluster: a segmented LCD sweep for the 5-hour window at 62% on the left, amber CONTEXT and COST readout boxes with range and trip lines around a weekly fuel column at 37%, and the Fable weekly tachometer at 84% on the right" width="100%">
+  <img src="docs/images/cluster-eighties-digital-dash.png" alt="The eighties-digital-dash cluster: a segmented LCD sweep for the 5-hour window at 62% on the left, amber CONTEXT and COST readout boxes with range and trip lines around a weekly fuel column at 37%, and the Fable weekly tachometer at 84% on the right" width="100%">
 </p>
 
 <details>
-<summary>How <code>corvette-c4</code> reads your windows</summary>
+<summary>How <code>eighties-digital-dash</code> reads your windows</summary>
 
-Laid out like the 1989 C4 Corvette LCD dash on a black panel. The 5-hour window is the speedometer sweep on the left, the model window the tachometer arch on the right, the weekly window the fuel column in the centre between amber context and cost readouts. Unlit segments show dimly, so you can see the scale turn amber then red toward the top.
+Laid out like a late-1980s American sports car LCD dash on a black panel. The 5-hour window is the speedometer sweep on the left, the model window the tachometer arch on the right, the weekly window the fuel column in the centre between amber context and cost readouts. Unlit segments show dimly, so you can see the scale turn amber then red toward the top.
 
 </details>
 
-**`mustang-terminator`**: the 2003-04 SVT Cobra: white faces in silver bezels.
+**`white-face-muscle`**: an early-2000s muscle car cluster: white faces in silver bezels.
 
 <p align="center">
-  <img src="docs/images/cluster-mustang-terminator.png" alt="The mustang-terminator cluster: white-faced round gauges in silver bezels, the 5-hour gauge at 62% with an empty-in warning on the left, four small gauges for WK LEFT 63%, CONTEXT 42%, TOOLS 7 and AGENTS 1 in the middle, and the Fable weekly gauge at 84% on the right" width="100%">
+  <img src="docs/images/cluster-white-face-muscle.png" alt="The white-face-muscle cluster: white-faced round gauges in silver bezels, the 5-hour gauge at 62% with an empty-in warning on the left, four small gauges for WK LEFT 63%, CONTEXT 42%, TOOLS 7 and AGENTS 1 in the middle, and the Fable weekly gauge at 84% on the right" width="100%">
 </p>
 
 <details>
-<summary>How <code>mustang-terminator</code> reads your windows</summary>
+<summary>How <code>white-face-muscle</code> reads your windows</summary>
 
-After the 2003-04 SVT Cobra cluster: white-faced round gauges in silver bezels with red needles and redline arcs. The 5-hour window is the big gauge on the left and the model window the one on the right. Four small gauges sit between them: WK LEFT (the weekly window left, in the fuel spot), CONTEXT (temp), TOOLS (oil, the last turn's tool calls, full at 20) and AGENTS (boost, running subagents, full at 5).
+After an early-2000s supercharged muscle car cluster: white-faced round gauges in silver bezels with red needles and redline arcs. The 5-hour window is the big gauge on the left and the model window the one on the right. Four small gauges sit between them: WK LEFT (the weekly window left, in the fuel spot), CONTEXT (temp), TOOLS (oil, the last turn's tool calls, full at 20) and AGENTS (boost, running subagents, full at 5).
 
 </details>
 
-**`lamborghini-huracan`**: an all-digital TFT screen round one big rev display.
+**`hexagon-tft`**: an all-digital TFT screen round one big rev display.
 
 <p align="center">
-  <img src="docs/images/cluster-lamborghini-huracan.png" alt="The lamborghini-huracan cluster: on a black screen, a round rev display for the 5-hour window at 62% with a yellow arc, 62 in white digits inside a hexagon, a red hexagon warning lamp and an empty-in warning, slim segmented arcs either side for the weekly window at 37% in green and the Fable weekly window at 84% in orange, hexagon-framed CTX 42% 84k, COST $1.23, TOOLS 7 and AGENTS 1 readouts, and a strada, sport, corsa row with SPORT lit" width="100%">
+  <img src="docs/images/cluster-hexagon-tft.png" alt="The hexagon-tft cluster: on a black screen, a round rev display for the 5-hour window at 62% with a yellow arc, 62 in white digits inside a hexagon, a red hexagon warning lamp and an empty-in warning, slim segmented arcs either side for the weekly window at 37% in green and the Fable weekly window at 84% in orange, hexagon-framed CTX 42% 84k, COST $1.23, TOOLS 7 and AGENTS 1 readouts, and a strada, sport, corsa row with SPORT lit" width="100%">
 </p>
 
 <details>
-<summary>How <code>lamborghini-huracan</code> reads your windows</summary>
+<summary>How <code>hexagon-tft</code> reads your windows</summary>
 
-After the Huracán's all-digital TFT screen: black, with one big round rev display in the middle and the reading in digital numerals inside a hexagon. The 5-hour window is the rev display; its lit arc sweeps 270 degrees and turns from green to yellow to orange as the window fills, with the last fifth of the scale tinted red. The weekly window is the slim segmented arc bracketing it on the left and the model window the matching arc on the right, with their readings beside them. Readouts framed as stretched hexagons carry CTX and COST on the left, TOOLS and AGENTS on the right. A drive-mode row under the dial (strada, sport, corsa) lights the mode the 5-hour window has reached.
+After a modern supercar's all-digital TFT screen: black, with one big round rev display in the middle and the reading in digital numerals inside a hexagon. The 5-hour window is the rev display; its lit arc sweeps 270 degrees and turns from green to yellow to orange as the window fills, with the last fifth of the scale tinted red. The weekly window is the slim segmented arc bracketing it on the left and the model window the matching arc on the right, with their readings beside them. Readouts framed as stretched hexagons carry CTX and COST on the left, TOOLS and AGENTS on the right. A drive-mode row under the dial (strada, sport, corsa) lights the mode the 5-hour window has reached.
 
 </details>
 
-**`porsche-911`**: five overlapping round gauges, the tach biggest and in front.
+**`five-dial-sports`**: five overlapping round gauges, the tach biggest and in front.
 
 <p align="center">
-  <img src="docs/images/cluster-porsche-911.png" alt="The porsche-911 cluster: five overlapping round black-faced gauges with white ticks and orange needles, the big centre tachometer for the 5-hour window at 62% with white numerals, a red redline band, a red warning lamp and an empty-in warning, the weekly gauge at 37% and the Fable weekly gauge at 84% either side, and small outer gauges for CTX 42% with COST $1.23 and for TOOLS 7 and AGENTS 1" width="100%">
+  <img src="docs/images/cluster-five-dial-sports.png" alt="The five-dial-sports cluster: five overlapping round black-faced gauges with white ticks and orange needles, the big centre tachometer for the 5-hour window at 62% with white numerals, a red redline band, a red warning lamp and an empty-in warning, the weekly gauge at 37% and the Fable weekly gauge at 84% either side, and small outer gauges for CTX 42% with COST $1.23 and for TOOLS 7 and AGENTS 1" width="100%">
 </p>
 
 <details>
-<summary>How <code>porsche-911</code> reads your windows</summary>
+<summary>How <code>five-dial-sports</code> reads your windows</summary>
 
-After the classic five-gauge 911 dash: five round black-faced gauges in thin silver bezels, each overlapping the next, with white ticks, orange needles and the tachometer biggest and in front in the middle. The 5-hour window is the tach, numbered 2, 4 and 6 with a red band over its last fifth. The weekly window is the gauge to its left and the model window the one to its right. The outer two carry context (left, with the cost under it) and a combination gauge (right) with one needle across the top for the last turn's tool calls (full at 20) and one across the bottom for running subagents (full at 5).
+After a classic rear-engined sports car five-gauge dash: five round black-faced gauges in thin silver bezels, each overlapping the next, with white ticks, orange needles and the tachometer biggest and in front in the middle. The 5-hour window is the tach, numbered 2, 4 and 6 with a red band over its last fifth. The weekly window is the gauge to its left and the model window the one to its right. The outer two carry context (left, with the cost under it) and a combination gauge (right) with one needle across the top for the last turn's tool calls (full at 20) and one across the bottom for running subagents (full at 5).
 
 </details>
 
-**`ferrari-f40`**: spartan black-faced gauges set into a felt panel.
+**`spartan-supercar`**: spartan black-faced gauges set into a felt panel.
 
 <p align="center">
-  <img src="docs/images/cluster-ferrari-f40.png" alt="The ferrari-f40 cluster: black-faced round gauges with orange ticks, red redline bands and white needles on a dark felt panel, the weekly speedometer at 37% on the left, small TEMP 42% and OIL 7 gauges, the big 5-hour tachometer at 62% with a red warning lamp and an empty-in warning in the middle, small BOOST 1 and TIME 23s gauges, and the Fable weekly gauge at 84% on the right" width="100%">
+  <img src="docs/images/cluster-spartan-supercar.png" alt="The spartan-supercar cluster: black-faced round gauges with orange ticks, red redline bands and white needles on a dark felt panel, the weekly speedometer at 37% on the left, small TEMP 42% and OIL 7 gauges, the big 5-hour tachometer at 62% with a red warning lamp and an empty-in warning in the middle, small BOOST 1 and TIME 23s gauges, and the Fable weekly gauge at 84% on the right" width="100%">
 </p>
 
 <details>
-<summary>How <code>ferrari-f40</code> reads your windows</summary>
+<summary>How <code>spartan-supercar</code> reads your windows</summary>
 
-After the late-1980s F40's spartan analogue dash: round black-faced gauges with orange markings, a solid red redline band and white needles, set straight into a dark felt panel. The 5-hour window is the big tachometer in the middle; the weekly window is the speedometer on the left and the model window the gauge on the right. Four small gauges sit either side of the tach: TEMP (context), OIL (the last turn's tool calls, full at 20), BOOST (running subagents, full at 5) and TIME (the last turn's length, full at two minutes). A warned window lights a red tell-tale lamp low on its face.
+After a late-1980s mid-engined supercar's spartan analogue dash: round black-faced gauges with orange markings, a solid red redline band and white needles, set straight into a dark felt panel. The 5-hour window is the big tachometer in the middle; the weekly window is the speedometer on the left and the model window the gauge on the right. Four small gauges sit either side of the tach: TEMP (context), OIL (the last turn's tool calls, full at 20), BOOST (running subagents, full at 5) and TIME (the last turn's length, full at two minutes). A warned window lights a red tell-tale lamp low on its face.
 
 </details>
 
-**`tron-lightcycle`**: neon rings on a black void over a perspective grid.
+**`neon-grid`**: neon rings on a black void over a perspective grid.
 
 <p align="center">
-  <img src="docs/images/cluster-tron-lightcycle.png" alt="The tron-lightcycle cluster: thin glowing rings on black, the weekly ring at 37% in cyan on the left, the larger 5-hour ring at 62% in the middle with a red core and an empty-in warning, and the Fable weekly ring at 84% in orange on the right, over a cyan perspective grid floor where a cyan CONTEXT 42% trail and an orange TOOLS 7 trail race in from either side, with AGENTS 1 between them" width="100%">
+  <img src="docs/images/cluster-neon-grid.png" alt="The neon-grid cluster: thin glowing rings on black, the weekly ring at 37% in cyan on the left, the larger 5-hour ring at 62% in the middle with a red core and an empty-in warning, and the Fable weekly ring at 84% in orange on the right, over a cyan perspective grid floor where a cyan CONTEXT 42% trail and an orange TOOLS 7 trail race in from either side, with AGENTS 1 between them" width="100%">
 </p>
 
 <details>
-<summary>How <code>tron-lightcycle</code> reads your windows</summary>
+<summary>How <code>neon-grid</code> reads your windows</summary>
 
-After the light cycle look of the Tron films: a black void, each window a thin glowing neon ring lit clockwise from twelve o'clock to a white-hot head, round an inner circle and hub like an identity disc. The 5-hour window is the big ring in the middle and the weekly window the cyan ring on the left. The model window is the orange ring on the right, in the rival rider's colour. Below them a perspective grid floor runs to a lit horizon, and two light trails race in from either side: cyan for context and orange for the last turn's tool calls (full at 20), with running agents counted between them. A warned window turns its ring's inner circle and hub red.
+After the neon look of 1980s computer-world science fiction: a black void, each window a thin glowing neon ring lit clockwise from twelve o'clock to a white-hot head, round an inner circle and hub like a glowing disc. The 5-hour window is the big ring in the middle and the weekly window the cyan ring on the left. The model window is the orange ring on the right, in a rival's colour. Below them a perspective grid floor runs to a lit horizon, and two light trails race in from either side: cyan for context and orange for the last turn's tool calls (full at 20), with running agents counted between them. A warned window turns its ring's inner circle and hub red.
 
 </details>
 
-**`f1-wheel`**: a steering wheel with fifteen shift lights and two rotaries.
+**`race-wheel`**: a steering wheel with fifteen shift lights and two rotaries.
 
 <p align="center">
-  <img src="docs/images/cluster-f1-wheel.png" alt="The f1-wheel cluster: a carbon-fibre steering wheel between two rubber grips, a row of shift lights across the top with five green and four red lit for the 5-hour window at 62%, 62 in big white digits on a red-ringed central LCD with an empty-in warning under it, a blue rotary for the weekly window at 37% on the left and an orange rotary for the Fable weekly window at 84% on the right, and green, yellow and purple buttons for CTX 42% $1.23, TOOLS 7 and AGENTS 1" width="100%">
+  <img src="docs/images/cluster-race-wheel.png" alt="The race-wheel cluster: a carbon-fibre steering wheel between two rubber grips, a row of shift lights across the top with five green and four red lit for the 5-hour window at 62%, 62 in big white digits on a red-ringed central LCD with an empty-in warning under it, a blue rotary for the weekly window at 37% on the left and an orange rotary for the Fable weekly window at 84% on the right, and green, yellow and purple buttons for CTX 42% $1.23, TOOLS 7 and AGENTS 1" width="100%">
 </p>
 
 <details>
-<summary>How <code>f1-wheel</code> reads your windows</summary>
+<summary>How <code>race-wheel</code> reads your windows</summary>
 
-After a modern Formula 1 steering wheel seen face on: a carbon-fibre body between two ridged rubber grips, with a black strip of fifteen shift lights across the top. The 5-hour window fills the shift lights left to right, five green, then five red, then five blue, and shows its percent in big gear-style digits on the small LCD in the middle. A warned 5-hour window rings the LCD in red. The weekly window is the blue rotary on the left and the model window the orange rotary on the right. Each rotary has a white pointer and eleven position dots that light up to its reading, the last two in red. A warned rotary gets a red rim, and a pair of flag lights at its end of the strip glows red. Coloured buttons beside the LCD carry CTX (context, with the cost), TOOLS (the last turn's tool calls) and AGENTS (running subagents), with their readings printed under the windows.
+After a modern single-seater racing steering wheel seen face on: a carbon-fibre body between two ridged rubber grips, with a black strip of fifteen shift lights across the top. The 5-hour window fills the shift lights left to right, five green, then five red, then five blue, and shows its percent in big gear-style digits on the small LCD in the middle. A warned 5-hour window rings the LCD in red. The weekly window is the blue rotary on the left and the model window the orange rotary on the right. Each rotary has a white pointer and eleven position dots that light up to its reading, the last two in red. A warned rotary gets a red rim, and a pair of flag lights at its end of the strip glows red. Coloured buttons beside the LCD carry CTX (context, with the cost), TOOLS (the last turn's tool calls) and AGENTS (running subagents), with their readings printed under the windows.
 
 </details>
 
-**`skyline-r34`**: a navy multifunction screen of segmented graphs.
+**`tuner-mfd`**: a navy multifunction screen of segmented graphs.
 
 <p align="center">
-  <img src="docs/images/cluster-skyline-r34.png" alt="The skyline-r34 cluster: a dark navy multifunction screen with a BOOST, OIL, INTAKE, THROTTLE, TIMER tab strip and a LAP 23s timer, a round segmented boost gauge for the 5-hour window at 62% with 62 in white digits, a red warning lamp and an empty-in warning on the left beside TOOLS 7 and AGENTS 1, and blue-white segmented bar graphs with amber top ends on the right for OIL TEMP (weekly) at 37%, INTAKE TEMP (Fable weekly) at 84% and THROTTLE (context) at 42% with 84k, each with a digital readout beside it" width="100%">
+  <img src="docs/images/cluster-tuner-mfd.png" alt="The tuner-mfd cluster: a dark navy multifunction screen with a BOOST, OIL, INTAKE, THROTTLE, TIMER tab strip and a LAP 23s timer, a round segmented boost gauge for the 5-hour window at 62% with 62 in white digits, a red warning lamp and an empty-in warning on the left beside TOOLS 7 and AGENTS 1, and blue-white segmented bar graphs with amber top ends on the right for OIL TEMP (weekly) at 37%, INTAKE TEMP (Fable weekly) at 84% and THROTTLE (context) at 42% with 84k, each with a digital readout beside it" width="100%">
 </p>
 
 <details>
-<summary>How <code>skyline-r34</code> reads your windows</summary>
+<summary>How <code>tuner-mfd</code> reads your windows</summary>
 
-After the late-1990s GT-R's centre multifunction display: a dark navy screen with a strip of page tabs across the top, segmented graphs lit blue-white with an amber top end, and a digital readout beside each. The 5-hour window is the round boost gauge on the left, its reading in digits in the middle and its percent, reset and running TOOLS and AGENTS counts beside it. On the right, the weekly window is the OIL TEMP bar graph, the model window the INTAKE TEMP bar graph, and context the THROTTLE bar graph under them, each with its percent and label beside the bar. The last turn's time reads as a LAP timer in the tab strip. A warned window lights a red lamp: in the open bottom of the boost gauge, or at the end of its bar.
+After a late-1990s Japanese turbo coupe's centre multifunction display: a dark navy screen with a strip of page tabs across the top, segmented graphs lit blue-white with an amber top end, and a digital readout beside each. The 5-hour window is the round boost gauge on the left, its reading in digits in the middle and its percent, reset and running TOOLS and AGENTS counts beside it. On the right, the weekly window is the OIL TEMP bar graph, the model window the INTAKE TEMP bar graph, and context the THROTTLE bar graph under them, each with its percent and label beside the bar. The last turn's time reads as a LAP timer in the tab strip. A warned window lights a red lamp: in the open bottom of the boost gauge, or at the end of its bar.
 
 </details>
 
-**`knight-rider`**: the talking car's red voice display and scanner.
+**`scanner-dash`**: a sci-fi car's red voice display and scanner.
 
 <p align="center">
-  <img src="docs/images/cluster-knight-rider.png" alt="The knight-rider cluster: on a black panel under a red scanner strip with its bright eye at 42%, the weekly bank on the left with rows of lit amber, green and red buttons, a green segmented readout of 37 and a green LED bar graph, the red voice display for the 5-hour window at 62% in the middle with its bars lit outward from the centre, white warning lamps either side and an empty-in warning, and the Fable weekly bank on the right with a red readout of 84 and its bar graph lit into the red, over a row with CTX 42% and COST $1.23, AUTO CRUISE lit, and TOOLS 7 and AGENTS 1" width="100%">
+  <img src="docs/images/cluster-scanner-dash.png" alt="The scanner-dash cluster: on a black panel under a red scanner strip with its bright eye at 42%, the weekly bank on the left with rows of lit amber, green and red buttons, a green segmented readout of 37 and a green LED bar graph, the red voice display for the 5-hour window at 62% in the middle with its bars lit outward from the centre, white warning lamps either side and an empty-in warning, and the Fable weekly bank on the right with a red readout of 84 and its bar graph lit into the red, over a row with CTX 42% and COST $1.23, AUTO CRUISE lit, and TOOLS 7 and AGENTS 1" width="100%">
 </p>
 
 <details>
-<summary>How <code>knight-rider</code> reads your windows</summary>
+<summary>How <code>scanner-dash</code> reads your windows</summary>
 
-After the talking car's dash in the 1980s TV series: a black panel with a red scanner light across the top and the red voice display in the middle. The 5-hour window is the voice display, three columns of red bars that grow outward from the centre line as the window fills, the middle column reaching furthest. The weekly window is the bank on the left and the model window the bank on the right. Each bank has a row of small lit square buttons, a three-digit segmented readout of its percent and an LED bar graph that runs green, then amber from 50% and red from 80%. The scanner's bright eye sits at the context fill. Each bank's second row of buttons counts something: the last turn's tool calls on the left, running subagents on the right. Under the voice display, NORMAL CRUISE, AUTO CRUISE and PURSUIT light by how full the 5-hour window is, between CTX and COST on the left and TOOLS and AGENTS on the right. A warned window flashes a white lamp beside its display.
+After the dash of a talking car from 1980s television science fiction: a black panel with a red scanner light across the top and the red voice display in the middle. The 5-hour window is the voice display, three columns of red bars that grow outward from the centre line as the window fills, the middle column reaching furthest. The weekly window is the bank on the left and the model window the bank on the right. Each bank has a row of small lit square buttons, a three-digit segmented readout of its percent and an LED bar graph that runs green, then amber from 50% and red from 80%. The scanner's bright eye sits at the context fill. Each bank's second row of buttons counts something: the last turn's tool calls on the left, running subagents on the right. Under the voice display, NORMAL CRUISE, AUTO CRUISE and PURSUIT light by how full the 5-hour window is, between CTX and COST on the left and TOOLS and AGENTS on the right. A warned window flashes a white lamp beside its display.
 
 </details>
 
-**`bel-air-1957`**: a two-tone dash with a ribbon speedometer under chrome.
+**`fifties-chrome`**: a two-tone dash with a ribbon speedometer under chrome.
 
 <p align="center">
-  <img src="docs/images/cluster-bel-air-1957.png" alt="The bel-air-1957 cluster: a turquoise upper dash with a chrome hood over a curved glass window and chrome fins either side, an amber ribbon for the 5-hour window at 62% sliding along a strip numbered 0 to 100 with a red jewel lit in the hood, and below on an ivory lower dash, a small chrome-ringed gauge for the weekly window at 37% on the left, the 5-hour readings with an empty-in warning over chrome ribbing in the middle, and a small chrome-ringed gauge for the Fable weekly window at 84% in red on the right" width="100%">
+  <img src="docs/images/cluster-fifties-chrome.png" alt="The fifties-chrome cluster: a turquoise upper dash with a chrome hood over a curved glass window and chrome fins either side, an amber ribbon for the 5-hour window at 62% sliding along a strip numbered 0 to 100 with a red jewel lit in the hood, and below on an ivory lower dash, a small chrome-ringed gauge for the weekly window at 37% on the left, the 5-hour readings with an empty-in warning over chrome ribbing in the middle, and a small chrome-ringed gauge for the Fable weekly window at 84% in red on the right" width="100%">
 </p>
 
 <details>
-<summary>How <code>bel-air-1957</code> reads your windows</summary>
+<summary>How <code>fifties-chrome</code> reads your windows</summary>
 
 After the late-1950s two-tone dash: a turquoise upper dash with a chrome hood arching over a long curved glass window, chrome fins either side, and an ivory lower dash. The 5-hour window is the ribbon speedometer across the top: a band slides left to right along a strip under the numbers 0 to 100, green, then amber from 50% and red from 80%, with a bright leading edge. The weekly window is the small chrome-ringed gauge on the left of the lower dash and the model window the one on the right, each with its own lit arc and ivory needle. The 5-hour readings sit between them over a strip of chrome ribbing. A warned window lights a red jewel in the top of the hood (for the 5-hour window) or a red lamp low on its gauge face.
 
 </details>
 
-**`delorean`**: three rows of segment displays that read out when each window resets.
+**`chrono-console`**: three rows of segment displays that read out when each window resets.
 
 <p align="center">
-  <img src="docs/images/cluster-delorean.png" alt="The delorean cluster: three rows of segment displays in a brushed-steel housing, the red top row for the 5-hour window at 62% with red bars round its percent window, its reset date and time and an empty-in warning, the green middle row for the weekly window at 37%, and the amber bottom row for the Fable weekly window at 84%, each row with MONTH, DAY, AM PM, HOUR and MIN windows over a black label plate" width="100%">
+  <img src="docs/images/cluster-chrono-console.png" alt="The chrono-console cluster: three rows of segment displays in a brushed-steel housing, the red top row for the 5-hour window at 62% with red bars round its percent window, its reset date and time and an empty-in warning, the green middle row for the weekly window at 37%, and the amber bottom row for the Fable weekly window at 84%, each row with MONTH, DAY, AM PM, HOUR and MIN windows over a black label plate" width="100%">
 </p>
 
 <details>
-<summary>How <code>delorean</code> reads your windows</summary>
+<summary>How <code>chrono-console</code> reads your windows</summary>
 
-After the time-machine console in the stainless gull-wing car of the 1980s time-travel films: three stacked rows of chunky segment displays in a brushed-steel housing, each with small engraved windows and a black label plate under it. The 5-hour window is the red top row, the weekly window the green middle row and the model window the amber bottom row. Each row reads its percent used in big segment digits, then the moment the window resets as MONTH, DAY, an AM or PM lamp, HOUR and MIN, with unlit segments glowing faintly behind the lit ones. A small bar on the plate line shows the fill, and a warned row lights red bars either side of its percent window.
+After a 1980s science-fiction time-travel console in a stainless steel car: three stacked rows of chunky segment displays in a brushed-steel housing, each with small engraved windows and a black label plate under it. The 5-hour window is the red top row, the weekly window the green middle row and the model window the amber bottom row. Each row reads its percent used in big segment digits, then the moment the window resets as MONTH, DAY, an AM or PM lamp, HOUR and MIN, with unlit segments glowing faintly behind the lit ones. A small bar on the plate line shows the fill, and a warned row lights red bars either side of its percent window.
 
 </details>
 
-**`wrx-gc8`**: black-faced gauges in an orange night glow under a hood.
+**`nineties-rally`**: black-faced gauges in an orange night glow under a hood.
 
 <p align="center">
-  <img src="docs/images/cluster-wrx-gc8.png" alt="The wrx-gc8 cluster: a dark hooded binnacle over black-faced gauges with white ticks, orange-red needles, red redline arcs and an orange backlight glow, the weekly speedometer at 37% on the left, the big 5-hour tachometer at 62% with white numerals, a red warning lamp and an empty-in warning in the middle, the Fable weekly gauge at 84% on the right, and small gauges at the outer edges for TEMP 42% over FUEL 116k and for BOOST 1 over TOOLS 7" width="100%">
+  <img src="docs/images/cluster-nineties-rally.png" alt="The nineties-rally cluster: a dark hooded binnacle over black-faced gauges with white ticks, orange-red needles, red redline arcs and an orange backlight glow, the weekly speedometer at 37% on the left, the big 5-hour tachometer at 62% with white numerals, a red warning lamp and an empty-in warning in the middle, the Fable weekly gauge at 84% on the right, and small gauges at the outer edges for TEMP 42% over FUEL 116k and for BOOST 1 over TOOLS 7" width="100%">
 </p>
 
 <details>
-<summary>How <code>wrx-gc8</code> reads your windows</summary>
+<summary>How <code>nineties-rally</code> reads your windows</summary>
 
-After the 1990s first-generation turbo saloon's cluster: a black hooded binnacle over black-faced gauges with crisp white markings, orange-red needles and red redline arcs, in the orange glow their backlights gave off at night. The 5-hour window is the big tachometer in the middle, numbered 2, 4 and 6 with its red arc from 7. The weekly window is the speedometer on the left and the model window the second main gauge on the right. Small gauges sit at the outer edges: TEMP (context) over FUEL (context tokens left) on the left, and on the right BOOST (running subagents, full at 5, on a vacuum-to-boost scale) over TOOLS (the last turn's tool calls, full at 20). A warned window lights a red lamp low on its face.
+After a 1990s rally-bred turbo saloon's cluster: a black hooded binnacle over black-faced gauges with crisp white markings, orange-red needles and red redline arcs, in the orange glow their backlights gave off at night. The 5-hour window is the big tachometer in the middle, numbered 2, 4 and 6 with its red arc from 7. The weekly window is the speedometer on the left and the model window the second main gauge on the right. Small gauges sit at the outer edges: TEMP (context) over FUEL (context tokens left) on the left, and on the right BOOST (running subagents, full at 5, on a vacuum-to-boost scale) over TOOLS (the last turn's tool calls, full at 20). A warned window lights a red lamp low on its face.
 
 </details>
 

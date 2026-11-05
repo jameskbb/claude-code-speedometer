@@ -195,18 +195,18 @@ test('a dial of any width fills exactly its grid', async () => {
 test('every theme has a README category', () => {
   for (const t of THEMES) expect(['classic', 'vehicles', 'beyond']).toContain(categoryOf(t))
   expect(categoryOf('minimal')).toBe('classic')
-  expect(categoryOf('corvette-c4')).toBe('vehicles')
+  expect(categoryOf('eighties-digital-dash')).toBe('vehicles')
 })
 
 test('each theme orders the three windows its own way', () => {
   const all = [{ kind: 'session', label: '5-hour', percent: 1 }, { kind: 'weekly_all', label: 'weekly', percent: 2 }, { kind: 'weekly_scoped', label: 'Fable weekly', percent: 3 }]
-  expect(dials(all, 'corvette-c4').map(d => d.label)).toEqual(['5-hour', 'weekly', 'Fable weekly'])
-  expect(dials(all, 'mustang-terminator').map(d => d.label)).toEqual(['5-hour', 'weekly', 'Fable weekly'])
+  expect(dials(all, 'eighties-digital-dash').map(d => d.label)).toEqual(['5-hour', 'weekly', 'Fable weekly'])
+  expect(dials(all, 'white-face-muscle').map(d => d.label)).toEqual(['5-hour', 'weekly', 'Fable weekly'])
   expect(dials(all, 'classic').map(d => d.w)).toEqual([21, 21, 21])
   for (const t of THEMES) expect(dials(all, t)).toHaveLength(3)
 })
 
-test('the terminator theme draws the pane too', { options: { theme: 'mustang-terminator' } }, async ($, on) => {
+test('the white-face-muscle theme draws the pane too', { options: { theme: 'white-face-muscle' } }, async ($, on) => {
   mock.clock(on)
   on('session.model', () => ({ value: 'claude-fable-5-1' }))
   on('session.root', () => ({ value: '/proj' }))
