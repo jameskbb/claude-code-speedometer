@@ -333,7 +333,9 @@ async function remember($: EngineOf, all: SpeedoLimit[], now: number, h: Hours) 
 }
 
 // Ponytail keeps its live mode per project at ~/.claude/ponytail-modes/<sha256 of the
-// project root>; no file means off. Read, never written.
+// project root>, plus a shared ~/.claude/.ponytail-active; no file means off.
+// Read on session start and each turn; written only by cyclePonytail, when the
+// person presses the band's ponytail badge.
 async function ponytailFlags($: EngineOf): Promise<string[]> {
   const home = (await $.env.get('HOME')) ?? (await $.env.get('USERPROFILE'))
   if (!home) return []
@@ -410,10 +412,14 @@ export const register: Register = (on, options) => {
     return next(e)
   })
 
+  // The three hooks below only watch. Each can refuse what it sits on (a
+  // compaction, a tool call, a subagent), so each carries a .catch that fails
+  // open: where the hook had called next, its answer is replayed; where it had
+  // not, the rest of the chain runs. A fault in the plugin never blocks them.
   on('session.compact', async ($, e, next) => {
     await update($, warned, () => 0)
     return next(e)
-  })
+  }).catch(($, e, next) => next(e))
 
   on('turn.start', async ($, e, next) => {
     if (e.agentId === undefined) {
@@ -438,7 +444,7 @@ export const register: Register = (on, options) => {
     const ran = await next(e)
     await update($, mode, () => 'working')
     return ran
-  })
+  }).catch(($, e, next) => next(e))
 
   on('agent.spawn', async ($, e, next) => {
     const r = await next(e)
@@ -447,7 +453,7 @@ export const register: Register = (on, options) => {
       await update($, agents, list => [...list, agent].slice(-12))
     }
     return r
-  })
+  }).catch(($, e, next) => next(e))
 
   // Each model request of a subagent reports its input side: the agent's own
   // context fill.

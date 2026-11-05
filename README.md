@@ -39,6 +39,35 @@ Answer `y` to add the marketplace, then pick a scope. The pane opens on its own 
 
 The per-model window comes from the same usage endpoint `/usage` reads, through the session's own credential; the plugin never sees the token.
 
+## What it reads, writes and sends
+
+Everything below is in [`hooks/register.tsx`](hooks/register.tsx); `claude plugin validate .` lists the same calls. The plugin runs no processes, sends no telemetry and makes one kind of network call only, to the usage endpoint.
+
+The usage-endpoint details are covered in the "Usage endpoint" subsection.
+
+### From the session
+
+It reads the session's own figures through the engine: context fill, token counts, cost, the engine's 5-hour and weekly rate-limit readings, the model name, and the start, step and end of turns, tool calls and subagents (type, description, model and token count). These only draw the pane and the band, live in the session's state and are never written to disk or sent anywhere. It reads no prompt, reply or tool content.
+
+### Plugin store (kept across sessions)
+
+One key, `history`: for each rate-limit window, up to 300 samples of a time and a percent used, none older than 24 hours. It is written each time the usage endpoint answers and is read back to work out the [burn-rate warnings](#burn-rate-warnings). Nothing else is stored.
+
+### Environment variables
+
+`HOME`, or `USERPROFILE` where `HOME` is unset (Windows), and only to find the ponytail files below. No other variable is read, and none is written.
+
+### Files, for the ponytail integration
+
+The plugin reads and writes no files of its own. It works with two files that the optional [ponytail](https://github.com/DietrichGebert/ponytail) plugin keeps in the `.claude` folder of your home directory:
+
+- **Read** on session start and at the start of each turn: ponytail's flag for this project, `ponytail-modes/<SHA-256 of the project root path>`, to show its level in the band. The project path is hashed on your machine to name the file and goes nowhere else. Without ponytail the file does not exist, the read finds nothing and the band shows no ponytail badge.
+- **Written** only when you press the band's ponytail badge, which appears only while ponytail is active: the next level (`lite`, `full` or `ultra`) goes into that project flag and into ponytail's shared `.ponytail-active` file, the same two files ponytail's own `/ponytail` command writes.
+
+### What it adds to the session
+
+Pressing the ponytail badge also appends one line to the conversation, `PONYTAIL MODE CHANGED: level <level>`, so the model follows the new level. Nothing else is ever added to the conversation. The other things it shows are local: the pane, the band, and toasts for 80% and 90% context and for a window on course to run out before it resets.
+
 ## The gallery
 
 Pick a cluster under `/config`, row **Gauge cluster**. Every one shows the three windows with their percent, reset time and burn-rate warning; most also fit in context, cost, tool calls or running agents where the original had room for a small gauge. All of them at a glance:
