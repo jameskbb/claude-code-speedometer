@@ -215,3 +215,64 @@ test('the terminator theme draws the pane too', { options: { theme: 'mustang-ter
   expect(await ui.find({ type: 'Text', text: /no reading/ })).toBeDefined()
   await ui.unmount()
 })
+
+// The usage endpoint, seen from beneath the plugin: what it asks, and what it
+// does when the answer fails or never comes.
+const HANDLE = 'handle-that-must-not-leak'
+const MEASURE = { context: { window: 200000 }, rateLimits: [], changed: ['context'] } as const
+const endpoint = (on: Parameters<Parameters<typeof test>[1]>[1], answer: (n: number) => unknown) => {
+  const clock = mock.clock(on, { now: 1_800_000_000_000 })
+  const stored: Record<string, unknown> = {}
+  on('store.get', (_, e) => ({ value: stored[e.key] }))
+  on('store.set', (_, e) => { stored[e.key] = e.value; return { value: undefined } })
+  on('session.authorize', () => ({ value: { handle: HANDLE, kind: 'bearer' } }))
+  on('session.measure', (_, e) => ({ changed: e.changed }))
+  const calls: { url: string; init?: unknown }[] = []
+  const shown: string[] = []
+  on('http.fetch', (_, e) => { calls.push(e); return answer(calls.length) as never })
+  on('ui.toast', (_, e) => { shown.push(JSON.stringify(e)); return { value: undefined } })
+  on('ui.status', (_, e) => { shown.push(JSON.stringify(e)); return { value: undefined } })
+  return { clock, calls, shown, stored }
+}
+
+test('the usage endpoint is asked by handle, once a minute, and its answer kept', async ($, on) => {
+  const body = { limits: [{ kind: 'session', percent: 61.54, resets_at: '2027-01-01T00:00:00Z' }, { kind: 'weekly_scoped', percent: 12, scope: { model: { display_name: 'Fable' } } }], account: 'not kept' }
+  const { clock, calls, stored } = endpoint(on, () => ({ value: { status: 200, ok: true, headers: {}, text: JSON.stringify(body) } }))
+  await $.session.measure(MEASURE)
+  expect(calls).toHaveLength(1)
+  expect(calls[0]?.url).toBe('https://api.anthropic.com/api/oauth/usage')
+  // The plugin hands over the opaque handle; the engine sets the header itself.
+  expect(calls[0]?.init).toEqual({ auth: HANDLE, headers: { 'anthropic-beta': 'oauth-2025-04-20' } })
+  // Only kind and percent reach the store.
+  expect(stored.history).toEqual({ session: [{ t: clock.now(), p: 61.5 }], weekly_scoped: [{ t: clock.now(), p: 12 }] })
+  await $.session.measure(MEASURE)
+  expect(calls).toHaveLength(1)
+  await clock.advance(61_000)
+  await $.session.measure(MEASURE)
+  expect(calls).toHaveLength(2)
+})
+
+test('a failed call surfaces nothing and is not retried within the minute', async ($, on) => {
+  const { clock, calls, shown, stored } = endpoint(on, () => { throw new Error(`refused: Authorization: Bearer ${HANDLE}`) })
+  await $.session.measure(MEASURE)
+  await $.session.measure(MEASURE)
+  expect(calls).toHaveLength(1)
+  expect(shown.join('')).not.toContain(HANDLE)
+  expect(JSON.stringify(stored)).not.toContain(HANDLE)
+  await clock.advance(61_000)
+  await $.session.measure(MEASURE)
+  expect(calls).toHaveLength(2)
+  expect(shown.join('')).not.toContain(HANDLE)
+})
+
+test('a call that never answers gives up and lets the session go on', async ($, on) => {
+  const { clock, calls } = endpoint(on, () => new Promise(() => {}))
+  let done = false
+  const measured = $.session.measure(MEASURE).then(() => { done = true })
+  await clock.settle()
+  expect(calls).toHaveLength(1)
+  expect(done).toBe(false)
+  await clock.advance(5_000)
+  await measured
+  expect(done).toBe(true)
+})

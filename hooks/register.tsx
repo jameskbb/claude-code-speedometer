@@ -211,6 +211,7 @@ const fromEngine = (rl: SpeedoUsage['rateLimits']): SpeedoLimit[] =>
     : [])
 
 const USAGE_URL = 'https://api.anthropic.com/api/oauth/usage'
+const FETCH_MS = 5_000
 
 type UsageLimitRow = { kind?: unknown; percent?: unknown; resets_at?: unknown; scope?: { model?: { display_name?: unknown } | null } | null }
 
@@ -220,8 +221,14 @@ type UsageLimitRow = { kind?: unknown; percent?: unknown; resets_at?: unknown; s
 async function fetchLimits($: EngineOf): Promise<SpeedoLimit[] | null> {
   const auth = (await $.session.authorize())?.handle
   if (!auth) return null
-  const r = await $.http.fetch(USAGE_URL, { auth, headers: { 'anthropic-beta': 'oauth-2025-04-20' } })
-  if (!r.ok) return null
+  // The host's fetch takes no timeout, so a stalled request gives up after
+  // FETCH_MS rather than holding the session's hooks; the wait is cancelled
+  // as soon as the answer comes.
+  const stop = new AbortController()
+  const late = $.clock.sleep(FETCH_MS, { signal: stop.signal }).then(() => null, () => null)
+  const r = await Promise.race([$.http.fetch(USAGE_URL, { auth, headers: { 'anthropic-beta': 'oauth-2025-04-20' } }), late])
+  stop.abort()
+  if (!r?.ok) return null
   const rows = (JSON.parse(r.text) as { limits?: UsageLimitRow[] }).limits
   if (!Array.isArray(rows)) return null
   return rows.flatMap(row => {
@@ -365,12 +372,15 @@ async function cyclePonytail($: EngineOf, current: string) {
   await $.session.append({ message: { type: 'user', content: [{ type: 'text', text: `PONYTAIL MODE CHANGED: level ${next}` }] } })
 }
 
-// Refreshes the windows from the usage endpoint at most once a minute; the
-// engine's own two windows stand in until the first answer.
+// Asks the usage endpoint at most once a minute, a failed or refused call
+// included, so an outage never turns into a retry on every measurement; the
+// engine's own two windows stand in until the first answer. A failure is
+// dropped whole: nothing of the request or its error is logged or shown.
 async function refresh($: EngineOf, rl: SpeedoUsage['rateLimits'], h: Hours) {
   const now = await $.clock.now()
-  const fresh = now - fetchedAt > 60_000 ? await fetchLimits($).catch(() => null) : null
-  if (fresh) fetchedAt = now
+  const due = now - fetchedAt > 60_000
+  if (due) fetchedAt = now
+  const fresh = due ? await fetchLimits($).catch(() => null) : null
   await update($, limits, had => fresh ?? had ?? fromEngine(rl))
   if (fresh) await remember($, fresh, now, h)
 }

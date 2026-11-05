@@ -43,7 +43,16 @@ The per-model window comes from the same usage endpoint `/usage` reads, through 
 
 Everything below is in [`hooks/register.tsx`](hooks/register.tsx); `claude plugin validate .` lists the same calls. The plugin runs no processes, sends no telemetry and makes one kind of network call only, to the usage endpoint.
 
-The usage-endpoint details are covered in the "Usage endpoint" subsection.
+### Usage endpoint
+
+This is the plugin's only network request, and it goes only to Anthropic.
+
+- **Where**: `GET https://api.anthropic.com/api/oauth/usage`, Anthropic's own endpoint, the one Claude Code's `/usage` command reads. The request has no body; its only header from the plugin is `anthropic-beta: oauth-2025-04-20`.
+- **Credential**: the plugin asks Claude Code for the session's sign-in with `$.session.authorize()` and gets back an opaque handle, not the token. Claude Code adds the credential header itself, over https, and only for Anthropic's own host. The plugin never holds, stores, logs or shows the token. With no Anthropic sign-in (a third-party provider, a gateway, no login) there is no handle and no request is made. Setting `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` makes Claude Code refuse the request.
+- **How often**: when the session starts, then at most once a minute as Claude Code reports new usage, counting a failed attempt. A request that has not answered within 5 seconds is abandoned.
+- **What is read and kept**: from the response's `limits` list, each window's kind, percent used, reset time and, for the per-model window, the model's display name. These are held in the session's state to draw the gauges. To project burn rate, the plugin also keeps, in its own Claude Code store on this machine, each window's kind and percent with the time they were read, for the past 24 hours (at most 300 readings a window). The rest of the response is discarded.
+- **On failure**: the error is dropped without being logged or shown, and the gauges keep their last reading, or the 5-hour and weekly figures Claude Code itself reports.
+- **Nothing else leaves the machine**: the plugin sends no data to any other destination, and none of its usage readings are sent anywhere.
 
 ### From the session
 
