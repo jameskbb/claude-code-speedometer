@@ -6,6 +6,9 @@
     "name": "jameskbb"
   },
   "license": "MIT",
+  "homepage": "https://github.com/jameskbb/claude-code-speedometer",
+  "repository": "https://github.com/jameskbb/claude-code-speedometer",
+  "icon": "./.claude-plugin/icon.png",
   "types": "./types/index.d.ts",
   "userConfig": {
     "theme": {
