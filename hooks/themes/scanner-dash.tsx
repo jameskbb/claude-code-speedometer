@@ -1,5 +1,5 @@
-// The scanner-dash cluster, after a talking car's dash from 1980s TV
-// series: a black panel with a red scanner light sweeping across the top,
+// The scanner-dash cluster, after a talking car's dash from 1980s science
+// fiction: a black panel with a red scanner light sweeping across the top,
 // the red voice display in the middle (three columns of bars that grow out
 // from the centre line), and a bank of small lit buttons, a segmented
 // readout and an LED bar graph either side.
@@ -127,7 +127,7 @@ export function scannerCells(percent: number | undefined, w = SCW): string {
 }
 
 // The mode buttons under the voice display, lit by how full the 5-hour window is.
-const MODES: [string, string][] = [['NORMAL CRUISE', TX.green], ['AUTO CRUISE', TX.amber], ['PURSUIT', TX.red]]
+const MODES: [string, string][] = [['STANDBY', TX.green], ['CRUISE', TX.amber], ['ALERT', TX.red]]
 
 export const theme: ThemeDef = {
   id: 'scanner-dash',

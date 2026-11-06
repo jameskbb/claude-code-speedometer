@@ -43,5 +43,6 @@ test('the scanner-dash theme draws the pane', { options: { theme: 'scanner-dash'
   on('env.get', () => ({ value: '/home/x' }))
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
   expect(await ui.find({ type: 'Text', text: /no reading/ })).toBeDefined()
+  for (const mode of ['STANDBY', 'CRUISE', 'ALERT']) expect(await ui.find({ type: 'Text', text: new RegExp(` ${mode} `) })).toBeDefined()
   await ui.unmount()
 })
