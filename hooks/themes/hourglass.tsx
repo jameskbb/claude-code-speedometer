@@ -1,9 +1,10 @@
 // The hourglass cluster: three sand glasses standing on a wooden shelf, one
-// per window. Sand left in the top bulb is what the window has left; the
-// pile in the bottom bulb is what has been used, with a thin stream falling
-// between them while the window is part used. The sand turns from green to
-// amber to red as the window passes 50% and 80%, and a warned glass wears a
-// red seal on its base. The 5-hour glass is the tall one in the middle.
+// per gauge. Sand left in the top bulb is what the gauge has left; the pile
+// in the bottom bulb is what has been used, with a thin stream falling
+// between them while the gauge is part used. The sand turns from green to
+// amber to red as the gauge passes 50% and 80%, and a warned glass wears a
+// red seal on its base. The main gauge (the 5-hour window by default) is the
+// tall glass in the middle, the second on its left and the third on its right.
 import { clamp, encode, PX } from './kit'
 import type { Dial, ThemeCtx, ThemeDef } from './kit'
 
@@ -15,7 +16,7 @@ const HG = {
 }
 const sandPx = (p: number) => (p >= 80 ? HG.red : p >= 50 ? HG.amber : HG.green)
 
-// The big glass for the 5-hour window and the two smaller ones.
+// The big glass for the main gauge and the two smaller ones.
 export const BIG = { w: 17, h: 24 }
 export const SMALL = { w: 13, h: 20 }
 
@@ -90,31 +91,35 @@ export const smallGlass = (p: number | undefined, warn = false) => glassCells(SM
 // Each glass stands in a column this wide, room for the empty-in warning.
 const COL = 22
 
+// A gauge with the slot it fills.
+type Slot = [string, Dial]
+
 export const theme: ThemeDef = {
   id: 'hourglass',
   category: 'beyond',
-  gauges: (five, week, model) => [
-    { ...five, w: BIG.w, rows: BIG.h / 2, cells: bigGlass },
-    { ...week, w: SMALL.w, rows: SMALL.h / 2, cells: smallGlass },
-    { ...model, w: SMALL.w, rows: SMALL.h / 2, cells: smallGlass },
+  gauges: (main, second, third) => [
+    { ...main, w: BIG.w, rows: BIG.h / 2, cells: bigGlass },
+    { ...second, w: SMALL.w, rows: SMALL.h / 2, cells: smallGlass },
+    { ...third, w: SMALL.w, rows: SMALL.h / 2, cells: smallGlass },
   ],
-  draw: ({ ui: { Box, Text, Raster }, five, week, model, warned, reset, empty }: ThemeCtx) => {
-    const glass = (d: Dial) => (
+  draw: ({ ui: { Box, Text, Raster }, main, second, third, warned, reset, empty }: ThemeCtx) => {
+    const glass = ([slot, d]: Slot) => (
       <Box flexDirection="column" width={COL} flexShrink={0} alignItems="center">
-        <Raster key={`dial-${d.label}`} columns={d.w} rows={d.rows} cells={d.cells(d.limit?.percent, warned(d))} />
+        <Raster key={`dial-${slot}`} columns={d.w} rows={d.rows} cells={d.cells(d.limit?.percent, warned(d))} />
       </Box>
     )
-    const legend = (d: Dial) => (
-      <Box flexDirection="column" width={COL} flexShrink={0} alignItems="center">
+    const legend = ([slot, d]: Slot) => (
+      <Box key={`legend-${slot}`} flexDirection="column" width={COL} flexShrink={0} alignItems="center">
         <Text color={d.limit ? (d.limit.percent >= 80 ? '#e0583e' : d.limit.percent >= 50 ? '#e6a940' : '#8fcf6a') : 'inactive'} bold>
           {d.limit ? `${d.limit.percent}% used` : '––%'}
         </Text>
         <Text color={HG.parchment} wrap="truncate-end">{d.label}</Text>
-        <Text dimColor wrap="truncate-end">{reset(d)}</Text>
+        <Text dimColor wrap="truncate-end">{reset(d) || ' '}</Text>
         {warned(d) ? <Text color="error" bold inverse wrap="truncate-end">{` ${empty(d)} `}</Text> : <Text> </Text>}
       </Box>
     )
-    const order = [week, five, model]
+    // Left to right: the second gauge, the main one, the third.
+    const order: Slot[] = [['second', second], ['main', main], ['third', third]]
     return (
       <Box flexDirection="column">
         <Box flexDirection="column" paddingX={1} backgroundColor={HG.panel}>

@@ -2,8 +2,9 @@
 // amplifier: two amber-lit windows with a black needle swinging up from a
 // pivot hidden under a dark cover, a black scale turning red at 0 VU and a
 // small red peak LED, set in a brushed-aluminium faceplate between walnut
-// cheeks. The 5-hour window is the left channel, the model window the right,
-// and the weekly window a peak-hold LED ladder between them.
+// cheeks. The main gauge (the 5-hour window by default) is the left channel,
+// the third gauge the right, and the second gauge a peak-hold LED ladder
+// between them.
 import { clamp, encode, PX } from './kit'
 import type { Dial, ThemeDef } from './kit'
 
@@ -31,7 +32,7 @@ const GLYPHS = [[0b101, 0b101, 0b101, 0b101, 0b010], [0b101, 0b101, 0b101, 0b101
 // One meter window: a black bezel round an amber face, brightest low in the
 // middle where the lamp sits; a scale arc over a pivot below the window, red
 // from 0 VU (80%) up; the needle; the dark pivot cover with the peak LED,
-// lit red when the window is warned. With no reading the lamp is off.
+// lit red when the gauge is warned. With no reading the lamp is off.
 export function meterCells(percent: number | undefined, warn = false): string {
   const pw = VW
   const ph = VR * 2
@@ -83,7 +84,7 @@ export function meterCells(percent: number | undefined, warn = false): string {
 
 // The peak-hold ladder between the meters: ten LEDs on a black strip, green,
 // then amber from 50%, red from 80%, unlit ones dim; apart on the right, the
-// PEAK LED, lit red when the window is warned.
+// PEAK LED, lit red when the gauge is warned.
 export function ladderCells(percent: number | undefined, warn = false): string {
   const pw = LW
   const ph = LR * 2
@@ -124,17 +125,17 @@ const ladder = { w: LW, rows: LR, cells: ladderCells }
 export const theme: ThemeDef = {
   id: 'vu-meter',
   category: 'beyond',
-  gauges: (five, week, model) => [{ ...five, ...meter }, { ...week, ...ladder }, { ...model, ...meter }],
-  draw: ({ ui: { Box, Text, Raster }, five, week, model, warned, reset, empty }) => {
+  gauges: (main, second, third) => [{ ...main, ...meter }, { ...second, ...ladder }, { ...third, ...meter }],
+  draw: ({ ui: { Box, Text, Raster }, main, second, third, warned, reset, empty }) => {
     const pct = (d: Dial) => (d.limit ? `${d.limit.percent}%` : '––%')
     const tone = (d: Dial) => (d.limit && d.limit.percent >= 80 ? VU.scaleRed : VU.ink2)
     const warning = (d: Dial) => (warned(d) ? <Text color="error" bold inverse wrap="truncate-end">{` ${empty(d)} `}</Text> : <Text> </Text>)
-    const channel = (d: Dial, side: string) => (
+    const channel = (d: Dial, slot: string, side: string) => (
       <Box flexDirection="column" width={VW} flexShrink={0} alignItems="center">
-        <Raster key={`dial-${d.label}`} columns={VW} rows={VR} cells={d.cells(d.limit?.percent, warned(d))} />
+        <Raster key={`dial-${slot}`} columns={VW} rows={VR} cells={d.cells(d.limit?.percent, warned(d))} />
         <Text wrap="truncate-end"><Text color={VU.engr}>{`${side}  `}</Text><Text color={tone(d)} bold>{pct(d)}</Text></Text>
         <Text color={VU.ink2} wrap="truncate-end">{d.label}</Text>
-        <Text color={VU.engr} wrap="truncate-end">{reset(d)}</Text>
+        <Text color={VU.engr} wrap="truncate-end">{reset(d) || ' '}</Text>
         {warning(d)}
       </Box>
     )
@@ -144,20 +145,20 @@ export const theme: ThemeDef = {
         <Box flexDirection="row">
           {cheek}
           <Box flexDirection="row" columnGap={1} paddingX={1} backgroundColor={VU.plate} alignItems="flex-start">
-            {channel(five, 'LEFT')}
+            {channel(main, 'main', 'LEFT')}
             <Box flexDirection="column" width={LW} flexShrink={0} alignItems="center">
               <Text color={VU.engr} wrap="truncate-end">{'PEAK  HOLD'}</Text>
-              <Raster key="ladder" columns={LW} rows={LR} cells={week.cells(week.limit?.percent, warned(week))} />
+              <Raster key="dial-second" columns={LW} rows={LR} cells={second.cells(second.limit?.percent, warned(second))} />
               {/* The scale under the LEDs, red from 0 VU like the meters. */}
               <Text wrap="truncate-end"><Text color={VU.engr}>{'-20   -10  -5  '}</Text><Text color={VU.scaleRed} bold>{'0  +3 PK'}</Text></Text>
-              <Text color={tone(week)} bold>{pct(week)}</Text>
-              <Text color={VU.ink2} wrap="truncate-end">{week.label}</Text>
-              <Text color={VU.engr} wrap="truncate-end">{reset(week)}</Text>
-              {warning(week)}
+              <Text color={tone(second)} bold>{pct(second)}</Text>
+              <Text color={VU.ink2} wrap="truncate-end">{second.label}</Text>
+              <Text color={VU.engr} wrap="truncate-end">{reset(second) || ' '}</Text>
+              {warning(second)}
               <Raster key="knobs" columns={LW} rows={3} cells={knobCells()} />
               <Text color={VU.engr} wrap="truncate-end">{' BALANCE    VOLUME'}</Text>
             </Box>
-            {channel(model, 'RIGHT')}
+            {channel(third, 'third', 'RIGHT')}
           </Box>
           {cheek}
         </Box>

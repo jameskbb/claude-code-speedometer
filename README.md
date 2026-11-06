@@ -351,7 +351,7 @@ After a 1990s rally-bred turbo saloon's cluster: a black hooded binnacle over bl
 <details>
 <summary>How <code>vu-meter</code> reads your windows</summary>
 
-After the backlit VU meters on a 1970s hi-fi amplifier: two amber-lit windows in a brushed-aluminium faceplate between walnut cheeks. Each has a black needle swinging up from a covered pivot over a scale that turns red at 0 VU, and a small red peak LED that lights when the window is warned. The 5-hour window is the left channel and the model window the right. Between them, the weekly window is a peak-hold LED ladder (green, then amber from 50%, red from 80%) above BALANCE and VOLUME knobs. A meter with no reading has its lamp off.
+After the backlit VU meters on a 1970s hi-fi amplifier: two amber-lit windows in a brushed-aluminium faceplate between walnut cheeks. Each has a black needle swinging up from a covered pivot over a scale that turns red at 0 VU, and a small red peak LED that lights when the gauge is warned. The main gauge (the 5-hour window by default) is the left channel and the third gauge (the model weekly window by default) the right. Between them, the second gauge (the weekly window by default) is a peak-hold LED ladder (green, then amber from 50%, red from 80%) above BALANCE and VOLUME knobs. Each prints its percent, the label of what it shows, and its reset when it has one. A meter with no reading has its lamp off.
 
 </details>
 
@@ -364,7 +364,7 @@ After the backlit VU meters on a 1970s hi-fi amplifier: two amber-lit windows in
 <details>
 <summary>How <code>weather-station</code> reads your windows</summary>
 
-After a brass-and-wood home weather station: three brass instruments on a walnut panel, each over a brass name plate. The 5-hour window is the thermometer on the left: a glass tube on a brass plate with a red column rising from the bulb, scaled 0 to 100 (COLD to HOT). The weekly window is the big barometer in the middle, its face banded FAIR, CHANGE, RAIN and STORMY. The model window is the hygrometer on the right, reading DRY, COMFORT, DAMP and WET. The dials have paper faces in polished brass bezels, black needles and a red zone from 80%; a warned window shows a red mark on its instrument.
+After a brass-and-wood home weather station: three brass instruments on a walnut panel, each over a brass name plate. The main gauge (the 5-hour window by default) is the thermometer on the left: a glass tube on a brass plate with a red column rising from the bulb, scaled 0 to 100 (COLD to HOT). The second gauge (the weekly window by default) is the big barometer in the middle, its face banded FAIR, CHANGE, RAIN and STORMY. The third gauge (the model weekly window by default) is the hygrometer on the right, reading DRY, COMFORT, DAMP and WET. Under each name plate are the percent and its weather word, then the label of what the gauge shows. The dials have paper faces in polished brass bezels, black needles and a red zone from 80%; a warned gauge shows a red mark on its instrument.
 
 </details>
 
@@ -377,11 +377,11 @@ After a brass-and-wood home weather station: three brass instruments on a walnut
 <details>
 <summary>How <code>steampunk</code> reads your windows</summary>
 
-After the brass pressure gauges on a Victorian boiler: cream faces in riveted brass bezels, black needles with a counterweight tail, a red danger sector at the top of each scale, and copper pipes joining the three. The 5-hour window is the big boiler gauge in the middle. The weekly window hangs off the left pipe under a brass steam whistle, which lets off steam once its needle reaches the danger sector. The model window hangs off the right pipe under a red valve wheel. Each gauge reads its percent on a brass plate, and a warned gauge lights a red lamp low on its face.
+After the brass pressure gauges on a Victorian boiler: cream faces in riveted brass bezels, black needles with a counterweight tail, a red danger sector at the top of each scale, and copper pipes joining the three. The main gauge (the 5-hour window by default) is the big boiler gauge in the middle. The second gauge (the weekly window by default) hangs off the left pipe under a brass steam whistle, which lets off steam once its needle reaches the danger sector. The third gauge (the model weekly window by default) hangs off the right pipe under a red valve wheel. Each gauge reads its percent on a brass plate over the label of what it shows, and a warned gauge lights a red lamp low on its face.
 
 </details>
 
-**`hourglass`**: three sand glasses; the sand left is the window left.
+**`hourglass`**: three sand glasses; the sand left is what each gauge has left.
 
 <p align="center">
   <img src="docs/images/cluster-hourglass.png" alt="The hourglass cluster: three sand glasses on a wooden shelf, the weekly glass on the left 37% used in green sand, the tall 5-hour glass in the middle 62% used in amber sand with a red seal on its base and an empty-in warning, and the Fable weekly glass on the right 84% used in red sand" width="100%">
@@ -390,11 +390,11 @@ After the brass pressure gauges on a Victorian boiler: cream faces in riveted br
 <details>
 <summary>How <code>hourglass</code> reads your windows</summary>
 
-Three sand glasses with wooden caps and brass posts, standing on a wooden shelf. Sand left in the top bulb is what the window has left; the pile in the bottom bulb is what has been used, with a thin stream falling between them while the window is part used. The sand turns from green to amber to red as the window passes 50% and 80%, and a warned glass wears a red seal on its base. The 5-hour window is the tall glass in the middle, the weekly window the one on the left and the model window the one on the right.
+Three sand glasses with wooden caps and brass posts, standing on a wooden shelf. Sand left in the top bulb is what the gauge has left; the pile in the bottom bulb is what has been used, with a thin stream falling between them while the gauge is part used. The sand turns from green to amber to red as the gauge passes 50% and 80%, and a warned glass wears a red seal on its base. The main gauge (the 5-hour window by default) is the tall glass in the middle, the second gauge (the weekly window by default) the one on the left and the third gauge (the model weekly window by default) the one on the right, each labelled with what it shows.
 
 </details>
 
-**`retro-arcade`**: an 8-bit heads-up display where each window is your health.
+**`retro-arcade`**: an 8-bit heads-up display where each gauge is your health.
 
 <p align="center">
   <img src="docs/images/cluster-retro-arcade.png" alt="The retro-arcade cluster: an arcade score line reading 1UP 0084000, HI-SCORE 0200000, CTX 42%, STAGE 12, CREDIT $1.23 and AGENTS 1 over three player cards of pixel hearts and segmented health bars: P1 5-HOUR at 62% used with one heart left, a red-framed bar, a LOW HEALTH banner and an empty-in warning; P2 WEEKLY at 37% used with two hearts left and a green bar; and P3 FABLE WEEKLY at 84% used with under half a heart and a red bar" width="100%">
@@ -403,7 +403,7 @@ Three sand glasses with wooden caps and brass posts, standing on a wooden shelf.
 <details>
 <summary>How <code>retro-arcade</code> reads your windows</summary>
 
-After an 8-bit arcade heads-up display on a CRT: a black screen, a score line across the top, and one player card per window. P1 on the left is the 5-hour window, P2 in the middle the weekly window and P3 on the right the model window. Each card has three pixel hearts over a segmented health bar, and what is left of the window is your health, so both empty as it is used; the bar turns from green to yellow to red as health runs low. A warned window rings its bar in red and flashes LOW HEALTH over its empty-in time, a spent one reads GAME OVER, and one with no reading says INSERT COIN. Along the top, 1UP is the context tokens, HI-SCORE the context window, CTX the context percent, STAGE the turn count, CREDIT the cost and AGENTS the running subagents.
+After an 8-bit arcade heads-up display on a CRT: a black screen, a score line across the top, and one player card per gauge, headed by the label of what it shows. P1 on the left is the main gauge (the 5-hour window by default), P2 in the middle the second gauge (the weekly window by default) and P3 on the right the third gauge (the model weekly window by default). Each card has three pixel hearts over a segmented health bar, and what is left of the gauge is your health, so both empty as it is used; the bar turns from green to yellow to red as health runs low. A warned gauge rings its bar in red and flashes LOW HEALTH over its empty-in time, a spent one reads GAME OVER, and one with no reading yet (a context gauge before the first turn included) says INSERT COIN. Along the top, 1UP is the context tokens, HI-SCORE the context window, CTX the context percent, STAGE the turn count, CREDIT the cost and AGENTS the running subagents.
 
 </details>
 

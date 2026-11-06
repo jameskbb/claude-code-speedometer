@@ -1,9 +1,9 @@
 // The steampunk cluster, after the brass pressure gauges on a Victorian
 // boiler: cream faces in riveted brass bezels, black needles with a
 // counterweight tail, a red danger sector at the top of each scale, and
-// copper pipes joining them. The 5-hour window is the boiler gauge in the
-// middle; the weekly gauge hangs off the left pipe under a steam whistle and
-// the model gauge off the right one under a valve wheel.
+// copper pipes joining them. The main gauge (the 5-hour window by default) is
+// the boiler gauge in the middle; the second gauge hangs off the left pipe
+// under a steam whistle and the third off the right one under a valve wheel.
 import { clamp, encode, PX } from './kit'
 import type { Dial, ThemeCtx, ThemeDef } from './kit'
 
@@ -94,7 +94,7 @@ function pipe(px: Uint32Array, pw: number, x0: number, x1: number, collar?: numb
   if (collar !== undefined) for (let y = PIPE[0]! - 1; y <= PIPE[2]! + 1; y += 1) px[y * pw + collar] = SP.collar
 }
 
-// The boiler gauge for the 5-hour window, pipe stubs out both sides.
+// The boiler gauge for the main slot, pipe stubs out both sides.
 export function boilerCells(percent: number | undefined, warn = false): string {
   const pw = BW
   const px = new Uint32Array(pw * GH).fill(PX.none)
@@ -145,20 +145,20 @@ export function valveCells(percent: number | undefined, warn = false): string {
 export const theme: ThemeDef = {
   id: 'steampunk',
   category: 'beyond',
-  gauges: (five, week, model) => [
-    { ...five, w: BW, rows: GH / 2, cells: boilerCells },
-    { ...week, w: GW, rows: GH / 2, cells: whistleCells },
-    { ...model, w: GW, rows: GH / 2, cells: valveCells },
+  gauges: (main, second, third) => [
+    { ...main, w: BW, rows: GH / 2, cells: boilerCells },
+    { ...second, w: GW, rows: GH / 2, cells: whistleCells },
+    { ...third, w: GW, rows: GH / 2, cells: valveCells },
   ],
-  draw: ({ ui: { Box, Text, Raster }, five, week, model, warned, reset, empty }: ThemeCtx) => {
+  draw: ({ ui: { Box, Text, Raster }, main, second, third, warned, reset, empty }: ThemeCtx) => {
     // A gauge and, under its face, a brass plate with the percent, then the label and reset.
-    const gauge = (d: Dial, side: 'flex-start' | 'center' | 'flex-end', faceCols: number) => (
+    const gauge = (d: Dial, slot: string, side: 'flex-start' | 'center' | 'flex-end', faceCols: number) => (
       <Box flexDirection="column" width={d.w} flexShrink={0} alignItems={side}>
-        <Raster key={`dial-${d.label}`} columns={d.w} rows={d.rows} cells={d.cells(d.limit?.percent, warned(d))} />
+        <Raster key={`dial-${slot}`} columns={d.w} rows={d.rows} cells={d.cells(d.limit?.percent, warned(d))} />
         <Box flexDirection="column" width={faceCols} flexShrink={0} alignItems="center">
           <Text color={SP.plateInk} backgroundColor={SP.plate} bold>{d.limit ? ` ${d.limit.percent}% ` : ' ––% '}</Text>
           <Text color={SP.cream} wrap="truncate-end">{d.label}</Text>
-          <Text dimColor wrap="truncate-end">{reset(d)}</Text>
+          <Text dimColor wrap="truncate-end">{reset(d) || ' '}</Text>
         </Box>
         {warned(d) ? <Text color="error" bold inverse wrap="truncate-end">{` ${empty(d)} `}</Text> : <Text> </Text>}
       </Box>
@@ -166,9 +166,9 @@ export const theme: ThemeDef = {
     return (
       <Box flexDirection="column">
         <Box flexDirection="row" paddingX={1} backgroundColor={SP.panel} alignItems="flex-start">
-          {gauge(week, 'flex-start', 16)}
-          {gauge(five, 'center', BW)}
-          {gauge(model, 'flex-end', 16)}
+          {gauge(second, 'second', 'flex-start', 16)}
+          {gauge(main, 'main', 'center', BW)}
+          {gauge(third, 'third', 'flex-end', 16)}
         </Box>
       </Box>
     )

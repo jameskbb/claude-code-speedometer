@@ -1,9 +1,10 @@
 // The weather-station cluster, after a brass-and-wood home weather station:
-// a thermometer, a barometer and a hygrometer on a walnut panel. The 5-hour
-// window is the thermometer on the left, its red column rising as the window
-// heats up; the weekly window the big barometer in the middle, its words
-// running from FAIR to STORMY; the model window the hygrometer on the right,
-// which reads per cent anyway.
+// a thermometer, a barometer and a hygrometer on a walnut panel. The main
+// gauge (the 5-hour window by default) is the thermometer on the left, its red
+// column rising as the gauge fills; the second gauge the big barometer in the
+// middle, its words running from FAIR to STORMY; the third gauge the
+// hygrometer on the right, which reads per cent anyway. Each instrument's
+// name plate sits over the label of what it shows.
 import { clamp, encode, PX } from './kit'
 import type { Dial, ThemeDef } from './kit'
 
@@ -129,20 +130,20 @@ const word = (d: Dial, words: readonly string[]) => (d.limit ? words[Math.min(wo
 export const theme: ThemeDef = {
   id: 'weather-station',
   category: 'beyond',
-  gauges: (five, week, model) => [
-    { ...five, w: TW, rows: TR, cells: thermometerCells },
-    { ...week, w: BW, rows: BW / 2, cells: barometerCells },
-    { ...model, w: HW, rows: HW / 2, cells: hygrometerCells },
+  gauges: (main, second, third) => [
+    { ...main, w: TW, rows: TR, cells: thermometerCells },
+    { ...second, w: BW, rows: BW / 2, cells: barometerCells },
+    { ...third, w: HW, rows: HW / 2, cells: hygrometerCells },
   ],
-  draw: ({ ui: { Box, Text, Raster }, five, week, model, warned, reset, empty }) => {
+  draw: ({ ui: { Box, Text, Raster }, main, second, third, warned, reset, empty }) => {
     const pct = (d: Dial) => (d.limit ? `${d.limit.percent}%` : '––%')
     const plaque = (name: string) => <Text color={WS.plaqueInk} backgroundColor={WS.plaque} bold>{` ${name} `}</Text>
-    // Under each instrument: its brass name plate, the reading and its weather, the window, the reset, the warning.
+    // Under each instrument: its brass name plate, the reading and its weather, the gauge's label, the reset, the warning.
     const legend = (d: Dial, name: string, words: readonly string[]) => [
       plaque(name),
       <Text wrap="truncate-end"><Text color={WS.cream} bold>{pct(d)}</Text><Text color={WS.brass}>{` ${word(d, words)}`}</Text></Text>,
       <Text color={WS.cream} wrap="truncate-end">{d.label}</Text>,
-      <Text color={WS.grain} wrap="truncate-end">{reset(d)}</Text>,
+      <Text color={WS.grain} wrap="truncate-end">{reset(d) || ' '}</Text>,
       warned(d) ? <Text color="error" bold inverse wrap="truncate-end">{` ${empty(d)} `}</Text> : <Text> </Text>,
     ]
     // The thermometer's scale, printed beside the tube at the height of its ticks.
@@ -155,18 +156,18 @@ export const theme: ThemeDef = {
               <Box flexDirection="column" width={3} flexShrink={0}>
                 {scale.map(s => <Text color={WS.brass}>{s || ' '}</Text>)}
               </Box>
-              <Raster key={`dial-${five.label}`} columns={TW} rows={TR} cells={five.cells(five.limit?.percent, warned(five))} />
+              <Raster key="dial-main" columns={TW} rows={TR} cells={main.cells(main.limit?.percent, warned(main))} />
               <Box width={3} flexShrink={0}><Text> </Text></Box>
             </Box>
-            {legend(five, 'THERMOMETER', ['COLD', 'COOL', 'MILD', 'WARM', 'HOT'])}
+            {legend(main, 'THERMOMETER', ['COLD', 'COOL', 'MILD', 'WARM', 'HOT'])}
           </Box>
           <Box flexDirection="column" width={24} flexShrink={0} alignItems="center">
-            <Raster key={`dial-${week.label}`} columns={BW} rows={BW / 2} cells={week.cells(week.limit?.percent, warned(week))} />
-            {legend(week, 'BAROMETER', ['FAIR', 'FAIR', 'CHANGE', 'RAIN', 'STORMY'])}
+            <Raster key="dial-second" columns={BW} rows={BW / 2} cells={second.cells(second.limit?.percent, warned(second))} />
+            {legend(second, 'BAROMETER', ['FAIR', 'FAIR', 'CHANGE', 'RAIN', 'STORMY'])}
           </Box>
           <Box flexDirection="column" width={18} flexShrink={0} alignItems="center">
-            <Raster key={`dial-${model.label}`} columns={HW} rows={HW / 2} cells={model.cells(model.limit?.percent, warned(model))} />
-            {legend(model, 'HYGROMETER', ['DRY', 'COMFORT', 'COMFORT', 'DAMP', 'WET'])}
+            <Raster key="dial-third" columns={HW} rows={HW / 2} cells={third.cells(third.limit?.percent, warned(third))} />
+            {legend(third, 'HYGROMETER', ['DRY', 'COMFORT', 'COMFORT', 'DAMP', 'WET'])}
           </Box>
         </Box>
       </Box>

@@ -1,8 +1,10 @@
 // The retro-arcade cluster, after an 8-bit arcade heads-up display on a CRT:
 // a black screen, a score line across the top, and one player card per
-// window with a row of pixel hearts over a segmented health bar. What is left
-// of the window is your health, so both empty as it is used. A warned window
-// rings its health bar in red and flashes LOW HEALTH; a spent one, GAME OVER.
+// gauge with a row of pixel hearts over a segmented health bar: P1 the main
+// gauge (the 5-hour window by default), P2 the second, P3 the third. What is
+// left of the gauge is your health, so both empty as it is used. A warned
+// gauge rings its health bar in red and flashes LOW HEALTH; a spent one, GAME
+// OVER; one with no reading yet, a context gauge included, INSERT COIN.
 import { clamp, encode, PX } from './kit'
 import type { Dial, Gauge, ThemeCtx, ThemeDef } from './kit'
 
@@ -16,7 +18,7 @@ const AR = {
 const TX = { panel: '#000000', white: '#f4f4f4', yellow: '#ffd23f', green: '#39ff6a', cyan: '#3ff2ff', magenta: '#ff4fd8', red: '#ff2b4e', grey: '#8a8a96', dim: '#55555f' }
 export const AW = 27
 export const AROWS = 7
-// Three hearts across; each is a third of the window's health.
+// Three hearts across; each is a third of the gauge's health.
 export const HEARTS = 3
 export const SEGS = 8
 
@@ -64,16 +66,16 @@ export function heartsCells(percent: number | undefined, warn = false): string {
 }
 
 const card: Gauge = { w: AW, rows: AROWS, cells: heartsCells }
-// Each card is a player: its tag and colour.
-const PLAYERS: [string, string][] = [['P1', TX.red], ['P2', TX.cyan], ['P3', TX.magenta]]
+// Each card is a player: its tag, colour and slot.
+const PLAYERS: [string, string, string][] = [['P1', TX.red, 'main'], ['P2', TX.cyan, 'second'], ['P3', TX.magenta, 'third']]
 
 const digits = (n: number | undefined, width = 7) => (n === undefined ? '-'.repeat(width) : String(Math.max(0, Math.round(n))).padStart(width, '0').slice(-width))
 
 export const theme: ThemeDef = {
   id: 'retro-arcade',
   category: 'beyond',
-  gauges: (five, week, model) => [{ ...five, ...card }, { ...week, ...card }, { ...model, ...card }],
-  draw: ({ ui: { Box, Text, Raster }, five, week, model, warned, reset, empty, context, turn, running }: ThemeCtx) => {
+  gauges: (main, second, third) => [{ ...main, ...card }, { ...second, ...card }, { ...third, ...card }],
+  draw: ({ ui: { Box, Text, Raster }, main, second, third, warned, reset, empty, context, turn, running }: ThemeCtx) => {
     const t = (text: string, color: string, bold = false) => <Text color={color} bold={bold} wrap="truncate-end">{text}</Text>
     // A score column: a red label over white digits, as arcade tops are.
     const score = (label: string, value: string, color = TX.white) => (
@@ -83,12 +85,12 @@ export const theme: ThemeDef = {
       </Box>
     )
     const player = (d: Dial, i: number) => {
-      const [tag, color] = PLAYERS[i]!
+      const [tag, color, slot] = PLAYERS[i]!
       const hp = health(d.limit?.percent)
       return (
-        <Box flexDirection="column" width={AW} flexShrink={0}>
+        <Box key={`player-${slot}`} flexDirection="column" width={AW} flexShrink={0}>
           <Text wrap="truncate-end"><Text color={TX.panel} backgroundColor={color} bold>{` ${tag} `}</Text><Text color={TX.white} bold>{` ${d.label.toUpperCase()}`}</Text></Text>
-          <Raster key={`dial-${d.label}`} columns={AW} rows={AROWS} cells={d.cells(d.limit?.percent, warned(d))} />
+          <Raster key={`dial-${slot}`} columns={AW} rows={AROWS} cells={d.cells(d.limit?.percent, warned(d))} />
           <Text wrap="truncate-end">
             <Text color={TX.yellow} bold>{d.limit ? `${d.limit.percent}%` : '––%'}</Text>
             <Text color={TX.grey}>{' USED  '}</Text>
@@ -105,7 +107,7 @@ export const theme: ThemeDef = {
         </Box>
       )
     }
-    // The score line: context tokens are the score and the window the high score;
+    // The score line: context tokens are the score and the context window the high score;
     // turns are the stage, cost the credit, and running subagents the agents.
     return (
       <Box flexDirection="column" backgroundColor={TX.panel} paddingX={1}>
@@ -120,7 +122,7 @@ export const theme: ThemeDef = {
         </Box>
         <Text> </Text>
         <Box flexDirection="row" columnGap={2}>
-          {[five, week, model].map(player)}
+          {[main, second, third].map(player)}
         </Box>
         <Text> </Text>
       </Box>
