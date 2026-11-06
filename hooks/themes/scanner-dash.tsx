@@ -31,7 +31,8 @@ const rect = (px: Uint32Array, pw: number, x0: number, y0: number, w: number, hh
 }
 
 // The voice display: three columns of one-pixel bars two pixels apart,
-// lit outward from the centre pair as the 5-hour window fills. The middle
+// lit outward from the centre pair as the main gauge (the 5-hour window by
+// default) fills. The middle
 // column reaches further than the outer two. Unlit bars glow faintly; a
 // warned window flashes white lamps either side.
 export function voiceCells(percent: number | undefined, warn = false): string {
@@ -126,18 +127,19 @@ export function scannerCells(percent: number | undefined, w = SCW): string {
   return encode(px, pw, ph)
 }
 
-// The mode buttons under the voice display, lit by how full the 5-hour window is.
+// The mode buttons under the voice display, lit by how full the main gauge
+// is (the 5-hour window by default; context fill reads the same way).
 const MODES: [string, string][] = [['STANDBY', TX.green], ['CRUISE', TX.amber], ['ALERT', TX.red]]
 
 export const theme: ThemeDef = {
   id: 'scanner-dash',
   category: 'vehicles',
-  gauges: (five, week, model) => [
-    { ...five, w: VW, rows: ROWS, cells: voiceCells },
-    { ...week, w: BW, rows: ROWS, cells: bankCells },
-    { ...model, w: BW, rows: ROWS, cells: bankCells },
+  gauges: (main, second, third) => [
+    { ...main, w: VW, rows: ROWS, cells: voiceCells },
+    { ...second, w: BW, rows: ROWS, cells: bankCells },
+    { ...third, w: BW, rows: ROWS, cells: bankCells },
   ],
-  draw: ({ ui: { Box, Text, Raster }, five, week, model, warned, reset, empty, context, turn, running }: ThemeCtx) => {
+  draw: ({ ui: { Box, Text, Raster }, main, second, third, warned, reset, empty, context, turn, running }: ThemeCtx) => {
     const pct = (d: Dial) => (d.limit ? `${d.limit.percent}%` : '––%')
     const tone = (d: Dial) => (!d.limit ? TX.dim : d.limit.percent >= 80 ? TX.red : d.limit.percent >= 50 ? TX.amber : TX.green)
     // A window's lines under its raster: percent and name, reset, then the warning.
@@ -148,7 +150,7 @@ export const theme: ThemeDef = {
         {warned(d) ? <Text color="error" bold inverse wrap="truncate-end">{` ${empty(d)} `}</Text> : <Text> </Text>}
       </Box>
     )
-    const p = five.limit?.percent
+    const p = main.limit?.percent
     const mode = p === undefined ? -1 : p >= 80 ? 2 : p >= 50 ? 1 : 0
     const ctx = context.percent === undefined ? '––%' : `${context.percent}%`
     const cost = context.usd === undefined ? '–' : `$${context.usd.toFixed(2)}`
@@ -157,16 +159,16 @@ export const theme: ThemeDef = {
         <Raster key="scanner" columns={SCW} rows={1} cells={scannerCells(context.percent)} />
         <Box flexDirection="row" columnGap={2}>
           <Box flexDirection="column" width={BW} flexShrink={0}>
-            <Raster key={`dial-${week.label}`} columns={BW} rows={ROWS} cells={bankCells(week.limit?.percent, warned(week), turn.tools)} />
-            {lines(week, BW)}
+            <Raster key="dial-second" columns={BW} rows={ROWS} cells={bankCells(second.limit?.percent, warned(second), turn.tools)} />
+            {lines(second, BW)}
           </Box>
           <Box flexDirection="column" width={VW} flexShrink={0}>
-            <Raster key={`dial-${five.label}`} columns={VW} rows={ROWS} cells={five.cells(p, warned(five))} />
-            {lines(five, VW)}
+            <Raster key="dial-main" columns={VW} rows={ROWS} cells={main.cells(p, warned(main))} />
+            {lines(main, VW)}
           </Box>
           <Box flexDirection="column" width={BW} flexShrink={0}>
-            <Raster key={`dial-${model.label}`} columns={BW} rows={ROWS} cells={bankCells(model.limit?.percent, warned(model), running)} />
-            {lines(model, BW)}
+            <Raster key="dial-third" columns={BW} rows={ROWS} cells={bankCells(third.limit?.percent, warned(third), running)} />
+            {lines(third, BW)}
           </Box>
         </Box>
         <Box flexDirection="row" width={SCW} justifyContent="space-between">

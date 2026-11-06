@@ -113,24 +113,26 @@ export function rowCells(percent: number | undefined, warn = false, tube: Tube =
 export const theme: ThemeDef = {
   id: 'chrono-console',
   category: 'vehicles',
-  gauges: (five, week, model) => {
+  gauges: (main, second, third) => {
     const row = (d: Omit<Dial, 'w' | 'rows' | 'cells'>, tube: Tube): Dial => ({
       ...d, w: RW, rows: RR, cells: (p, warn) => rowCells(p, warn, tube, moment(d.limit?.resetsAt)),
     })
-    return [row(five, TUBES[0]), row(week, TUBES[1]), row(model, TUBES[2])]
+    return [row(main, TUBES[0]), row(second, TUBES[1]), row(third, TUBES[2])]
   },
-  draw: ({ ui: { Box, Text, Raster }, five, week, model, warned, reset, empty }: ThemeCtx) => {
+  draw: ({ ui: { Box, Text, Raster }, main, second, third, warned, reset, empty }: ThemeCtx) => {
     // The engraved labels over the windows, each centred on its window.
     const heads = Object.values(WINDOWS).reduce((line, win) => {
       const at = win.x + Math.floor((win.w - win.label.length) / 2)
       return line.padEnd(at, ' ') + win.label
     }, '').padEnd(RW, ' ')
+    // Keys by slot, not label: two slots may show the same source.
+    const slot = (d: Dial) => (d === main ? 'main' : d === second ? 'second' : 'third')
     const row = (d: Dial, tube: Tube) => {
       const p = d.limit?.percent
       return (
         <Box flexDirection="column" width={RW} flexShrink={0}>
           <Text color={TX.engraved} backgroundColor={TX.steel} bold wrap="truncate-end">{heads}</Text>
-          <Raster key={`dial-${d.label}`} columns={RW} rows={RR} cells={d.cells(p, warned(d))} />
+          <Raster key={`dial-${slot(d)}`} columns={RW} rows={RR} cells={d.cells(p, warned(d))} />
           <Box flexDirection="row" width={RW} backgroundColor={TX.steel}>
             <Box width={WINDOWS.month.x - 1} flexShrink={0} paddingLeft={1}>
               <Text wrap="truncate-end"><Text color={tube.text} backgroundColor={TX.plate}>{p === undefined ? '▱'.repeat(10) : bar(p, 10)}</Text><Text color={TX.engraved} bold>{p === undefined ? ' ––%' : ` ${p}%`}</Text></Text>
@@ -150,9 +152,9 @@ export const theme: ThemeDef = {
     }
     return (
       <Box flexDirection="column" backgroundColor={TX.steel} paddingX={1} rowGap={0}>
-        {row(five, TUBES[0])}
-        {row(week, TUBES[1])}
-        {row(model, TUBES[2])}
+        {row(main, TUBES[0])}
+        {row(second, TUBES[1])}
+        {row(third, TUBES[2])}
       </Box>
     )
   },

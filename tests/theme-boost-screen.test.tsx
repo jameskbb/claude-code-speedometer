@@ -1,5 +1,7 @@
 import { expect, mock, test } from 'claude-code/testing'
 
+import { dials } from '../hooks/register'
+
 import { BARW, barCells, BROWS, GW, roundCells } from '../hooks/themes/boost-screen'
 
 const PANE = {
@@ -43,5 +45,58 @@ test('the boost-screen theme draws the pane too', { options: { theme: 'boost-scr
   on('env.get', () => ({ value: '/home/x' }))
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
   expect(await ui.find({ type: 'Text', text: /no reading/ })).toBeDefined()
+  await ui.unmount()
+})
+
+// A plan with no 5-hour window: auto puts weekly on the main gauge and
+// context fill on the second.
+const NO_FIVE = [
+  { kind: 'weekly_all', label: 'weekly', percent: 30, resetsAt: new Date(2 * 86_400_000).toISOString() },
+  { kind: 'weekly_scoped', label: 'Fable weekly', percent: 10 },
+]
+const plan = (on: Parameters<Parameters<typeof test>[1]>[1]) => {
+  mock.clock(on)
+  on('session.model', () => ({ value: 'claude-fable-5-1' }))
+  on('session.root', () => ({ value: '/proj' }))
+  on('env.get', () => ({ value: '/home/x' }))
+  const seeded: Record<string, unknown> = {
+    limits: { shape: 'limits-1', value: NO_FIVE },
+    usage: { shape: 'usage-1', value: { percent: 42, tokens: 84000, window: 200000, rateLimits: [], usd: 1.23 } },
+  }
+  on('state.get', async (_, e, next) => {
+    const own = await next(e)
+    if (!('value' in own) || !own.value || own.value.value !== undefined) return own
+    return e.key in seeded ? { value: { value: seeded[e.key], version: 0 } } : own
+  })
+}
+
+test('boost-screen binds the slots in order, whatever each shows', () => {
+  const [main, second, third] = dials(NO_FIVE, 'boost-screen', ['auto', 'auto', 'auto'], 42)
+  expect([main?.source, main?.label, main?.limit?.percent]).toEqual(['weekly', 'weekly', 30])
+  expect([second?.source, second?.label, second?.limit?.percent]).toEqual(['context', 'context', 42])
+  expect([third?.source, third?.label]).toEqual(['model-weekly', 'Fable weekly'])
+  expect(main).toMatchObject({ w: GW })
+  expect(second).toMatchObject({ w: BARW })
+})
+
+test('boost-screen on a plan with no 5-hour window: weekly on the main gauge, context on the second', { options: { theme: 'boost-screen' } }, async ($, on) => {
+  plan(on)
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await ui.find({ type: 'Text', text: /^weekly$/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /^30%$/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /^context$/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /^42%$/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /^Fable weekly$/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /^10%$/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /5-hour/ })).toBeUndefined()
+  expect(await ui.find({ type: 'Text', text: /undefined|NaN/ })).toBeUndefined()
+  await ui.unmount()
+})
+
+test('boost-screen draws any source in any slot', { options: { theme: 'boost-screen', gauge1: 'context', gauge2: 'five-hour', gauge3: 'context' } }, async ($, on) => {
+  plan(on)
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await ui.find({ type: 'Text', text: /no reading/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /undefined|NaN/ })).toBeUndefined()
   await ui.unmount()
 })

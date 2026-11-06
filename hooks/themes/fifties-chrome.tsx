@@ -137,12 +137,12 @@ export function ribsCells(w = RIBW): string {
 export const theme: ThemeDef = {
   id: 'fifties-chrome',
   category: 'vehicles',
-  gauges: (five, week, model) => [
-    { ...five, w: RW, rows: RROWS, cells: ribbonCells },
-    { ...week, w: GW, rows: GROWS, cells: roundCells },
-    { ...model, w: GW, rows: GROWS, cells: roundCells },
+  gauges: (main, second, third) => [
+    { ...main, w: RW, rows: RROWS, cells: ribbonCells },
+    { ...second, w: GW, rows: GROWS, cells: roundCells },
+    { ...third, w: GW, rows: GROWS, cells: roundCells },
   ],
-  draw: ({ ui: { Box, Text, Raster }, five, week, model, warned, reset, empty }: ThemeCtx) => {
+  draw: ({ ui: { Box, Text, Raster }, main, second, third, warned, reset, empty }: ThemeCtx) => {
     const pct = (d: Dial) => <Text color={d.limit ? inkFor(d.limit.percent) : TX.soft} bold>{d.limit ? `${d.limit.percent}%` : '––%'}</Text>
     // A window's lines: percent, label, reset, and the warning in inverse red.
     const lines = (d: Dial, align: 'flex-start' | 'flex-end' | 'center', w: number) => (
@@ -153,20 +153,22 @@ export const theme: ThemeDef = {
         {warned(d) ? <Text color="error" bold inverse wrap="truncate-end">{` ${empty(d)} `}</Text> : <Text> </Text>}
       </Box>
     )
-    const gauge = (d: Dial) => <Raster key={`dial-${d.label}`} columns={d.w} rows={d.rows} cells={d.cells(d.limit?.percent, warned(d))} />
+    // Keys by slot, not label: two slots may show the same source.
+    const slot = (d: Dial) => (d === main ? 'main' : d === second ? 'second' : 'third')
+    const gauge = (d: Dial) => <Raster key={`dial-${slot(d)}`} columns={d.w} rows={d.rows} cells={d.cells(d.limit?.percent, warned(d))} />
     const side = (RW - 2 - 2 * GW - RIBW) / 2
     return (
       <Box flexDirection="column" width={RW} backgroundColor={TX.ivory} alignItems="flex-start">
-        {gauge(five)}
+        {gauge(main)}
         <Box flexDirection="row" width={RW} paddingX={1} paddingTop={1}>
-          {gauge(week)}
-          {lines(week, 'flex-start', side)}
+          {gauge(second)}
+          {lines(second, 'flex-start', side)}
           <Box flexDirection="column" width={RIBW} flexShrink={0} alignItems="center">
-            {lines(five, 'center', RIBW)}
+            {lines(main, 'center', RIBW)}
             <Raster key="ribs" columns={RIBW} rows={1} cells={ribsCells()} />
           </Box>
-          {lines(model, 'flex-end', side)}
-          {gauge(model)}
+          {lines(third, 'flex-end', side)}
+          {gauge(third)}
         </Box>
       </Box>
     )

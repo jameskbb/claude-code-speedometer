@@ -1,5 +1,7 @@
 import { expect, mock, test } from 'claude-code/testing'
 
+import { dials } from '../hooks/register'
+
 import { moment, rowCells, RR, RW, theme, TUBES } from '../hooks/themes/chrono-console'
 
 const PANE = {
@@ -27,12 +29,12 @@ test('each chrono-console row fills exactly its grid', () => {
     }
   }
   const resetsAt = new Date(0).toISOString()
-  const [five, week, model] = theme.gauges(
-    { label: '5-hour', limit: { kind: 'session', label: '5-hour', percent: 62, resetsAt } },
-    { label: 'weekly' },
-    { label: 'Fable weekly' },
+  const [main, second, third] = theme.gauges(
+    { source: 'five-hour', label: '5-hour', limit: { kind: 'session', label: '5-hour', percent: 62, resetsAt } },
+    { source: 'context', label: 'context', limit: { kind: 'context', label: 'context', percent: 42 } },
+    { source: 'model-weekly', label: 'Fable weekly' },
   )
-  for (const d of [five, week, model]) expect(size(d.cells(50, true))).toBe(d.w * d.rows * 12)
+  for (const d of [main, second, third]) expect(size(d.cells(50, true))).toBe(d.w * d.rows * 12)
 })
 
 test('a warned chrono-console row paints differently', () => {
@@ -55,5 +57,57 @@ test('the chrono-console theme draws the pane', { options: { theme: 'chrono-cons
   on('env.get', () => ({ value: '/home/x' }))
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
   expect(await ui.find({ type: 'Text', text: /no reading/ })).toBeDefined()
+  await ui.unmount()
+})
+
+// A plan with no 5-hour window: auto puts weekly on the main gauge and
+// context fill on the second.
+const NO_FIVE = [
+  { kind: 'weekly_all', label: 'weekly', percent: 30, resetsAt: new Date(2 * 86_400_000).toISOString() },
+  { kind: 'weekly_scoped', label: 'Fable weekly', percent: 10 },
+]
+const plan = (on: Parameters<Parameters<typeof test>[1]>[1]) => {
+  mock.clock(on)
+  on('session.model', () => ({ value: 'claude-fable-5-1' }))
+  on('session.root', () => ({ value: '/proj' }))
+  on('env.get', () => ({ value: '/home/x' }))
+  const seeded: Record<string, unknown> = {
+    limits: { shape: 'limits-1', value: NO_FIVE },
+    usage: { shape: 'usage-1', value: { percent: 42, tokens: 84000, window: 200000, rateLimits: [], usd: 1.23 } },
+  }
+  on('state.get', async (_, e, next) => {
+    const own = await next(e)
+    if (!('value' in own) || !own.value || own.value.value !== undefined) return own
+    return e.key in seeded ? { value: { value: seeded[e.key], version: 0 } } : own
+  })
+}
+
+test('chrono-console binds the slots in order, whatever each shows', () => {
+  const [main, second, third] = dials(NO_FIVE, 'chrono-console', ['auto', 'auto', 'auto'], 42)
+  expect([main?.source, main?.label, main?.limit?.percent]).toEqual(['weekly', 'weekly', 30])
+  expect([second?.source, second?.label, second?.limit?.percent]).toEqual(['context', 'context', 42])
+  expect([third?.source, third?.label]).toEqual(['model-weekly', 'Fable weekly'])
+  expect(main).toMatchObject({ w: RW })
+  expect(second).toMatchObject({ w: RW })
+})
+
+test('chrono-console on a plan with no 5-hour window: weekly on the main gauge, context on the second', { options: { theme: 'chrono-console' } }, async ($, on) => {
+  plan(on)
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await ui.find({ type: 'Text', text: / WEEKLY / })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: / 30%$/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: / CONTEXT / })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: / 42%$/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: / FABLE WEEKLY / })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /5-hour/ })).toBeUndefined()
+  expect(await ui.find({ type: 'Text', text: /undefined|NaN/ })).toBeUndefined()
+  await ui.unmount()
+})
+
+test('chrono-console draws any source in any slot', { options: { theme: 'chrono-console', gauge1: 'context', gauge2: 'five-hour', gauge3: 'context' } }, async ($, on) => {
+  plan(on)
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await ui.find({ type: 'Text', text: /no reading/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /undefined|NaN/ })).toBeUndefined()
   await ui.unmount()
 })

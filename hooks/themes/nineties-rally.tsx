@@ -118,11 +118,12 @@ export const smallCells = (p: number | undefined, warn = false) => rallyCells(10
 // The whole binnacle in one raster: the hood's shell arching over a dark
 // well, the four small gauges at the outer edges, the speedometer and the
 // second main gauge either side, and the tachometer in the middle.
-// Left to right: temp over fuel, weekly, 5-hour, model weekly, boost over tools.
+// Left to right: temp over fuel, the second gauge, the main gauge (the
+// tachometer; the 5-hour window by default), the third gauge, boost over tools.
 export const CW = 86
 export const CR = 14
 export type Readings = {
-  five?: number; week?: number; model?: number; context?: number; tools: number; agents: number; warn: [boolean, boolean, boolean]
+  main?: number; second?: number; third?: number; context?: number; tools: number; agents: number; warn: [boolean, boolean, boolean]
 }
 export function clusterCells(r: Readings, pw = CW, rows = CR): string {
   const ph = rows * 2
@@ -146,9 +147,9 @@ export function clusterCells(r: Readings, pw = CW, rows = CR): string {
     [at(7), 21.5, 4.6, FUEL, r.context === undefined ? -1 : 1 - clamp(r.context), false],
     [at(78), 10, 4.6, BOOST, clamp(Math.min(100, r.agents * 20)), false],
     [at(78), 21.5, 4.6, TOOLS, clamp(Math.min(100, r.tools * 5)), false],
-    [at(21.5), 16.5, 8.6, MAIN, clamp(r.week), r.warn[1]],
-    [at(63.5), 16.5, 8.6, MAIN, clamp(r.model), r.warn[2]],
-    [at(42.5), 15, 11.6, TACH, clamp(r.five), r.warn[0]],
+    [at(21.5), 16.5, 8.6, MAIN, clamp(r.second), r.warn[1]],
+    [at(63.5), 16.5, 8.6, MAIN, clamp(r.third), r.warn[2]],
+    [at(42.5), 15, 11.6, TACH, clamp(r.main), r.warn[0]],
   ]
   for (const [cx, cy, R] of gauges) halo(px, pw, cx, cy, R)
   for (const [cx, cy, R, f, fill, warn] of gauges) face(px, pw, cx, cy, R, f, fill, warn)
@@ -158,17 +159,17 @@ export function clusterCells(r: Readings, pw = CW, rows = CR): string {
 export const theme: ThemeDef = {
   id: 'nineties-rally',
   category: 'vehicles',
-  gauges: (five, week, model) => [
-    { ...five, w: 24, rows: 12, cells: tachCells },
-    { ...week, w: 18, rows: 9, cells: mainCells },
-    { ...model, w: 18, rows: 9, cells: mainCells },
+  gauges: (main, second, third) => [
+    { ...main, w: 24, rows: 12, cells: tachCells },
+    { ...second, w: 18, rows: 9, cells: mainCells },
+    { ...third, w: 18, rows: 9, cells: mainCells },
   ],
-  draw: ({ ui: { Box, Text, Raster }, five, week, model, warned, reset, empty, context, turn, running }: ThemeCtx) => {
+  draw: ({ ui: { Box, Text, Raster }, main, second, third, warned, reset, empty, context, turn, running }: ThemeCtx) => {
     // The window's lines under its gauge: percent and label, reset, warning.
     const under = (d: Dial, w: number) => (
       <Box flexDirection="column" width={w} flexShrink={0} alignItems="center">
         <Text wrap="truncate-end"><Text color={GC.white} bold>{d.limit ? `${d.limit.percent}%` : '––%'}</Text><Text color={GC.orange}> {d.label}</Text></Text>
-        <Text color={GC.grey} wrap="truncate-end">{reset(d)}</Text>
+        <Text color={GC.grey} wrap="truncate-end">{reset(d) || ' '}</Text>
         {warned(d) ? <Text color="error" bold inverse wrap="truncate-end">{w > 20 ? ` ${empty(d)} ` : empty(d)}</Text> : <Text> </Text>}
       </Box>
     )
@@ -180,8 +181,8 @@ export const theme: ThemeDef = {
     const p = context.percent
     const left = p === undefined || context.tokens === undefined ? '––' : `${Math.max(0, Math.round((context.window - context.tokens) / 1000))}k`
     const cells = clusterCells({
-      five: five.limit?.percent, week: week.limit?.percent, model: model.limit?.percent, context: p,
-      tools: turn.tools, agents: running, warn: [warned(five), warned(week), warned(model)],
+      main: main.limit?.percent, second: second.limit?.percent, third: third.limit?.percent, context: p,
+      tools: turn.tools, agents: running, warn: [warned(main), warned(second), warned(third)],
     })
     return (
       <Box flexDirection="column">
@@ -189,9 +190,9 @@ export const theme: ThemeDef = {
           <Raster key="binnacle" columns={CW} rows={CR} cells={cells} />
           <Box flexDirection="row">
             {outer([['TEMP', p === undefined ? '––%' : `${p}%`], ['FUEL', left]])}
-            {under(week, 17)}
-            {under(five, 26)}
-            {under(model, 17)}
+            {under(second, 17)}
+            {under(main, 26)}
+            {under(third, 17)}
             {outer([['BOOST', `${running}`], ['TOOLS', `${turn.tools}`]])}
           </Box>
         </Box>

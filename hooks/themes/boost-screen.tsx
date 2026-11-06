@@ -100,7 +100,9 @@ export function barCells(percent: number | undefined, warn = false, w = 30): str
   return encode(px, pw, ph)
 }
 
-// The 5-hour window is the boost gauge; the other two are bar graphs.
+// The main gauge (the 5-hour window by default) is the boost gauge; the
+// second and third are bar graphs. Each prints its own label beside its
+// percent; BOOST, OIL TEMP and INTAKE TEMP are only the screen's captions.
 export const GW = 22
 export const BARW = 30
 // The readout columns beside the gauge and beside each bar.
@@ -110,12 +112,14 @@ const BRW = 13
 export const theme: ThemeDef = {
   id: 'boost-screen',
   category: 'vehicles',
-  gauges: (five, week, model) => [
-    { ...five, w: GW, rows: GW / 2, cells: roundCells },
-    { ...week, w: BARW, rows: BROWS, cells: barCells },
-    { ...model, w: BARW, rows: BROWS, cells: barCells },
+  gauges: (main, second, third) => [
+    { ...main, w: GW, rows: GW / 2, cells: roundCells },
+    { ...second, w: BARW, rows: BROWS, cells: barCells },
+    { ...third, w: BARW, rows: BROWS, cells: barCells },
   ],
-  draw: ({ ui: { Box, Text, Raster }, five, week, model, warned, reset, empty, context, turn, running }: ThemeCtx) => {
+  draw: ({ ui: { Box, Text, Raster }, main, second, third, warned, reset, empty, context, turn, running }: ThemeCtx) => {
+    // Keys by slot, not label: two slots may show the same source.
+    const slot = (d: Dial) => (d === main ? 'main' : d === second ? 'second' : 'third')
     const t = (text: string, color: string, bold = false) => <Text color={color} bold={bold} wrap="truncate-end">{text}</Text>
     const pct = (d: Dial) => (d.limit ? `${d.limit.percent}%` : '––%')
     const alarm = (d: Dial) => (warned(d) ? <Text color="error" bold inverse wrap="truncate-end">{` ${empty(d)} `}</Text> : <Text> </Text>)
@@ -138,7 +142,7 @@ export const theme: ThemeDef = {
         {warn ?? null}
       </Box>
     )
-    const win = (d: Dial, name: string) => graph(name, reset(d), pct(d), d.label, d.cells(d.limit?.percent, warned(d)), `dial-${d.label}`, alarm(d))
+    const win = (d: Dial, name: string) => graph(name, reset(d), pct(d), d.label, d.cells(d.limit?.percent, warned(d)), `dial-${slot(d)}`, alarm(d))
     const tab = (name: string, on: boolean) => (on
       ? <Text color={TX.screen} backgroundColor={TX.white} bold>{` ${name} `}</Text>
       : <Text color={TX.blue}>{` ${name} `}</Text>)
@@ -152,21 +156,21 @@ export const theme: ThemeDef = {
         {t('─'.repeat(full), TX.dim)}
         <Box flexDirection="row" columnGap={1}>
           <Box flexDirection="row" width={GW + GRW} flexShrink={0}>
-            <Raster key={`dial-${five.label}`} columns={GW} rows={five.rows} cells={five.cells(five.limit?.percent, warned(five))} />
+            <Raster key="dial-main" columns={GW} rows={main.rows} cells={main.cells(main.limit?.percent, warned(main))} />
             <Box flexDirection="column" width={GRW} paddingLeft={1}>
               {t('BOOST', TX.amber, true)}
-              {t(pct(five), TX.white, true)}
-              {t(five.label, TX.blue)}
-              {t(reset(five) || ' ', TX.dim)}
-              {alarm(five)}
+              {t(pct(main), TX.white, true)}
+              {t(main.label, TX.blue)}
+              {t(reset(main) || ' ', TX.dim)}
+              {alarm(main)}
               <Text> </Text>
               {pair('TOOLS', `${turn.tools}`)}
               {pair('AGENTS', `${running}`)}
             </Box>
           </Box>
           <Box flexDirection="column" width={BARW + BRW} flexShrink={0}>
-            {win(week, 'OIL TEMP')}
-            {win(model, 'INTAKE TEMP')}
+            {win(second, 'OIL TEMP')}
+            {win(third, 'INTAKE TEMP')}
             {graph('THROTTLE', context.tokens === undefined ? '' : `${Math.round(context.tokens / 1000)}k`, context.percent === undefined ? '––%' : `${context.percent}%`, 'context', barCells(context.percent, false, BARW), 'bar-throttle')}
           </Box>
         </Box>
