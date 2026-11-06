@@ -99,10 +99,12 @@ export const comboCells = (upper: number | undefined, lower: number | undefined)
 
 // The whole dash in one raster, so the gauges can overlap: outer gauges
 // first, then the flanking pair, then the tach on top. Left to right:
-// context, weekly, 5-hour, model weekly, and tools over agents.
+// context, the second gauge, the main gauge on the tach, the third gauge,
+// and tools over agents. By default the slots are the 5-hour window (main),
+// the weekly window (second) and the model's weekly window (third).
 export const CW = 82
 export const CR = 13
-export type Readings = { five?: number; week?: number; model?: number; context?: number; tools: number; agents: number; warn: [boolean, boolean, boolean] }
+export type Readings = { main?: number; second?: number; third?: number; context?: number; tools: number; agents: number; warn: [boolean, boolean, boolean] }
 export function clusterCells(r: Readings): string {
   const pw = CW
   const ph = CR * 2
@@ -110,28 +112,28 @@ export function clusterCells(r: Readings): string {
   const cy = (ph - 1) / 2
   face(px, pw, 7.5, cy, OW / 2 - 0.1, [[SMALL, clamp(r.context)]], false)
   face(px, pw, 73.5, cy, OW / 2 - 0.1, [[UPPER, clamp(Math.min(100, r.tools * 5))], [LOWER, clamp(Math.min(100, r.agents * 20))]], false)
-  face(px, pw, 21.5, cy, SW / 2 - 0.1, [[SIDE, clamp(r.week)]], r.warn[1])
-  face(px, pw, 59.5, cy, SW / 2 - 0.1, [[SIDE, clamp(r.model)]], r.warn[2])
-  face(px, pw, 40.5, cy, TW / 2 - 0.1, [[TACH, clamp(r.five)]], r.warn[0])
+  face(px, pw, 21.5, cy, SW / 2 - 0.1, [[SIDE, clamp(r.second)]], r.warn[1])
+  face(px, pw, 59.5, cy, SW / 2 - 0.1, [[SIDE, clamp(r.third)]], r.warn[2])
+  face(px, pw, 40.5, cy, TW / 2 - 0.1, [[TACH, clamp(r.main)]], r.warn[0])
   return encode(px, pw, ph)
 }
 
 export const theme: ThemeDef = {
   id: 'five-dial-sports',
   category: 'vehicles',
-  gauges: (five, week, model) => [
-    { ...five, w: TW, rows: TW / 2, cells: tachCells },
-    { ...week, w: SW, rows: SW / 2, cells: sideCells },
-    { ...model, w: SW, rows: SW / 2, cells: sideCells },
+  gauges: (main, second, third) => [
+    { ...main, w: TW, rows: TW / 2, cells: tachCells },
+    { ...second, w: SW, rows: SW / 2, cells: sideCells },
+    { ...third, w: SW, rows: SW / 2, cells: sideCells },
   ],
-  draw: ({ ui: { Box, Text, Raster }, five, week, model, warned, reset, empty, context, turn, running }: ThemeCtx) => {
+  draw: ({ ui: { Box, Text, Raster }, main, second, third, warned, reset, empty, context, turn, running }: ThemeCtx) => {
     const pct = (d: Dial) => (d.limit ? `${d.limit.percent}%` : '––%')
-    // The window's lines under its gauge.
+    // The gauge's lines under it.
     const under = (d: Dial, w: number) => (
       <Box flexDirection="column" width={w} flexShrink={0} alignItems="center">
         <Text color={NB.white} bold>{pct(d)}</Text>
         <Text color={NB.white} wrap="truncate-end">{d.label}</Text>
-        <Text color={NB.grey} wrap="truncate-end">{reset(d)}</Text>
+        <Text color={NB.grey} wrap="truncate-end">{reset(d) || ' '}</Text>
         {warned(d) ? <Text color="error" bold inverse wrap="truncate-end">{w > 20 ? ` ${empty(d)} ` : empty(d)}</Text> : <Text> </Text>}
       </Box>
     )
@@ -141,8 +143,8 @@ export const theme: ThemeDef = {
       </Box>
     )
     const cells = clusterCells({
-      five: five.limit?.percent, week: week.limit?.percent, model: model.limit?.percent, context: context.percent,
-      tools: turn.tools, agents: running, warn: [warned(five), warned(week), warned(model)],
+      main: main.limit?.percent, second: second.limit?.percent, third: third.limit?.percent, context: context.percent,
+      tools: turn.tools, agents: running, warn: [warned(main), warned(second), warned(third)],
     })
     return (
       <Box flexDirection="column">
@@ -150,9 +152,9 @@ export const theme: ThemeDef = {
           <Raster key="dash" columns={CW} rows={CR} cells={cells} />
           <Box flexDirection="row">
             {outer([['CTX', context.percent === undefined ? '––%' : `${context.percent}%`], ['COST', context.usd !== undefined ? `$${context.usd.toFixed(2)}` : '–']])}
-            {under(week, 19)}
-            {under(five, 24)}
-            {under(model, 19)}
+            {under(second, 19)}
+            {under(main, 24)}
+            {under(third, 19)}
             {outer([['TOOLS', `${turn.tools}`], ['AGENTS', `${running}`]])}
           </Box>
         </Box>

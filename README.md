@@ -219,7 +219,7 @@ After an early-2000s supercharged muscle car cluster: white-faced round gauges i
 <details>
 <summary>How <code>hex-supercar</code> reads your windows</summary>
 
-After a modern supercar's all-digital TFT screen: black, with one big round rev display in the middle and the reading in digital numerals inside a hexagon. The 5-hour window is the rev display; its lit arc sweeps 270 degrees and turns from green to yellow to orange as the window fills, with the last fifth of the scale tinted red. The weekly window is the slim segmented arc bracketing it on the left and the model window the matching arc on the right, with their readings beside them. Readouts framed as stretched hexagons carry CTX and COST on the left, TOOLS and AGENTS on the right. A drive-mode row under the dial (road, sport, track) lights the mode the 5-hour window has reached.
+After a modern supercar's all-digital TFT screen: black, with one big round rev display in the middle and the reading in digital numerals inside a hexagon. The main gauge (the 5-hour window by default) is the rev display; its lit arc sweeps 270 degrees and turns from green to yellow to orange as the gauge fills, with the last fifth of the scale tinted red. The second gauge (the weekly window by default) is the slim segmented arc bracketing it on the left and the third (the model's weekly window by default) the matching arc on the right, with their readings beside them. Readouts framed as stretched hexagons carry CTX and COST on the left, TOOLS and AGENTS on the right. A drive-mode row under the dial (road, sport, track) lights the mode the main gauge has reached, whatever it shows.
 
 </details>
 
@@ -232,7 +232,7 @@ After a modern supercar's all-digital TFT screen: black, with one big round rev 
 <details>
 <summary>How <code>five-dial-sports</code> reads your windows</summary>
 
-After a classic rear-engined sports car five-gauge dash: five round black-faced gauges in thin silver bezels, each overlapping the next, with white ticks, orange needles and the tachometer biggest and in front in the middle. The 5-hour window is the tach, numbered 2, 4 and 6 with a red band over its last fifth. The weekly window is the gauge to its left and the model window the one to its right. The outer two carry context (left, with the cost under it) and a combination gauge (right) with one needle across the top for the last turn's tool calls (full at 20) and one across the bottom for running subagents (full at 5).
+After a classic rear-engined sports car five-gauge dash: five round black-faced gauges in thin silver bezels, each overlapping the next, with white ticks, orange needles and the tachometer biggest and in front in the middle. The main gauge (the 5-hour window by default) is the tach, numbered 2, 4 and 6 with a red band over its last fifth. The second gauge (the weekly window by default) is the one to its left and the third (the model's weekly window by default) the one to its right. The outer two carry context (left, with the cost under it) and a combination gauge (right) with one needle across the top for the last turn's tool calls (full at 20) and one across the bottom for running subagents (full at 5).
 
 </details>
 
@@ -245,7 +245,7 @@ After a classic rear-engined sports car five-gauge dash: five round black-faced 
 <details>
 <summary>How <code>spartan-supercar</code> reads your windows</summary>
 
-After a late-1980s mid-engined supercar's spartan analogue dash: round black-faced gauges with orange markings, a solid red redline band and white needles, set straight into a dark felt panel. The 5-hour window is the big tachometer in the middle; the weekly window is the speedometer on the left and the model window the gauge on the right. Four small gauges sit either side of the tach: TEMP (context), OIL (the last turn's tool calls, full at 20), BOOST (running subagents, full at 5) and TIME (the last turn's length, full at two minutes). A warned window lights a red tell-tale lamp low on its face.
+After a late-1980s mid-engined supercar's spartan analogue dash: round black-faced gauges with orange markings, a solid red redline band and white needles, set straight into a dark felt panel. The main gauge (the 5-hour window by default) is the big tachometer in the middle; the second (the weekly window by default) is the speedometer on the left and the third (the model's weekly window by default) the gauge on the right. Four small gauges sit either side of the tach: TEMP (context), OIL (the last turn's tool calls, full at 20), BOOST (running subagents, full at 5) and TIME (the last turn's length, full at two minutes). A warned window lights a red tell-tale lamp low on its face.
 
 </details>
 
@@ -258,7 +258,7 @@ After a late-1980s mid-engined supercar's spartan analogue dash: round black-fac
 <details>
 <summary>How <code>neon-grid</code> reads your windows</summary>
 
-After the neon look of 1980s computer-world science fiction: a black void, each window a thin glowing neon ring lit clockwise from twelve o'clock to a white-hot head, round an inner circle and hub like a glowing disc. The 5-hour window is the big ring in the middle and the weekly window the cyan ring on the left. The model window is the orange ring on the right, in a rival's colour. Below them a perspective grid floor runs to a lit horizon, and two light trails race in from either side: cyan for context and orange for the last turn's tool calls (full at 20), with running agents counted between them. A warned window turns its ring's inner circle and hub red.
+After the neon look of 1980s computer-world science fiction: a black void, each window a thin glowing neon ring lit clockwise from twelve o'clock to a white-hot head, round an inner circle and hub like a glowing disc. The main gauge (the 5-hour window by default) is the big ring in the middle and the second (the weekly window by default) the cyan ring on the left. The third (the model's weekly window by default) is the orange ring on the right, in a rival's colour. Below them a perspective grid floor runs to a lit horizon, and two light trails race in from either side: cyan for context and orange for the last turn's tool calls (full at 20), with running agents counted between them. A warned window turns its ring's inner circle and hub red.
 
 </details>
 
@@ -271,7 +271,7 @@ After the neon look of 1980s computer-world science fiction: a black void, each 
 <details>
 <summary>How <code>race-wheel</code> reads your windows</summary>
 
-After a modern single-seater racing steering wheel seen face on: a carbon-fibre body between two ridged rubber grips, with a black strip of fifteen shift lights across the top. The 5-hour window fills the shift lights left to right, five green, then five red, then five blue, and shows its percent in big gear-style digits on the small LCD in the middle. A warned 5-hour window rings the LCD in red. The weekly window is the blue rotary on the left and the model window the orange rotary on the right. Each rotary has a white pointer and eleven position dots that light up to its reading, the last two in red. A warned rotary gets a red rim, and a pair of flag lights at its end of the strip glows red. Coloured buttons beside the LCD carry CTX (context, with the cost), TOOLS (the last turn's tool calls) and AGENTS (running subagents), with their readings printed under the windows.
+After a modern single-seater racing steering wheel seen face on: a carbon-fibre body between two ridged rubber grips, with a black strip of fifteen shift lights across the top. The main gauge (the 5-hour window by default) fills the shift lights left to right, five green, then five red, then five blue, and shows its percent in big gear-style digits on the small LCD in the middle. A warned main gauge rings the LCD in red. The second gauge (the weekly window by default) is the blue rotary on the left and the third (the model's weekly window by default) the orange rotary on the right. Each rotary has a white pointer and eleven position dots that light up to its reading, the last two in red. A warned rotary gets a red rim, and a pair of flag lights at its end of the strip glows red. Coloured buttons beside the LCD carry CTX (context, with the cost), TOOLS (the last turn's tool calls) and AGENTS (running subagents), with their readings printed under the gauges.
 
 </details>
 

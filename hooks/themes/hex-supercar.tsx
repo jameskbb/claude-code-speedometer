@@ -3,7 +3,9 @@
 // sweeping clockwise round it and the digital readout in a hexagon inside,
 // slim segmented arcs bracketing it either side, readouts framed as stretched
 // hexagons, and the drive-mode row under it. The arc takes the drive
-// mode's colour: green, then yellow, then orange as the window fills.
+// mode's colour: green, then yellow, then orange as its gauge fills. The rev
+// display is the main gauge (the 5-hour window by default), and it picks the
+// lit drive mode; the side arcs are the second and third gauges.
 import { clamp, encode, PX } from './kit'
 import type { Dial, ThemeCtx, ThemeDef } from './kit'
 
@@ -142,12 +144,12 @@ export const rightArcCells = (percent: number | undefined, warn = false) => side
 export const theme: ThemeDef = {
   id: 'hex-supercar',
   category: 'vehicles',
-  gauges: (five, week, model) => [
-    { ...five, w: RW, rows: RW / 2, cells: revCells },
-    { ...week, w: AW, rows: AR, cells: leftArcCells },
-    { ...model, w: AW, rows: AR, cells: rightArcCells },
+  gauges: (main, second, third) => [
+    { ...main, w: RW, rows: RW / 2, cells: revCells },
+    { ...second, w: AW, rows: AR, cells: leftArcCells },
+    { ...third, w: AW, rows: AR, cells: rightArcCells },
   ],
-  draw: ({ ui: { Box, Text, Raster }, five, week, model, warned, reset, empty, context, turn, running }: ThemeCtx) => {
+  draw: ({ ui: { Box, Text, Raster }, main, second, third, warned, reset, empty, context, turn, running }: ThemeCtx) => {
     const tone = (d: Dial) => (d.limit ? hex(mode(d.limit.percent).px) : HX.grey)
     const pct = (d: Dial) => (d.limit ? `${d.limit.percent}%` : '––%')
     const warning = (d: Dial) => (warned(d) ? <Text color="error" bold inverse wrap="truncate-end">{` ${empty(d)} `}</Text> : <Text> </Text>)
@@ -158,43 +160,43 @@ export const theme: ThemeDef = {
       <Text wrap="truncate-end"><Text color={color}>{'❮ '}</Text><Text color={HX.grey}>{label.padEnd(7)}</Text><Text color={HX.white} bold>{value.slice(0, W - 11).padEnd(W - 11)}</Text><Text color={color}>{' ❯'}</Text></Text>,
       <Text color={color}>{` ╲${'─'.repeat(W - 4)}╱ `}</Text>,
     ]
-    // A side page: the window's reading, then two framed readouts.
+    // A side page: the gauge's reading, then two framed readouts.
     const side = (d: Dial, right: boolean, info: [string, string][]) => (
       <Box flexDirection="column" width={W} flexShrink={0} alignItems={right ? 'flex-end' : 'flex-start'}>
         <Text color={tone(d)} bold>{pct(d)}</Text>
         <Text color={HX.white} wrap="truncate-end">{d.label}</Text>
-        <Text color={HX.grey} wrap="truncate-end">{reset(d)}</Text>
+        <Text color={HX.grey} wrap="truncate-end">{reset(d) || ' '}</Text>
         {warning(d)}
         <Text> </Text>
         {info.flatMap(([k, v]) => cell('#3c3c3c', k, v))}
       </Box>
     )
-    const arc = (d: Dial) => (
+    const arc = (d: Dial, key: string) => (
       <Box flexDirection="column" width={AW} flexShrink={0}>
-        <Raster key={`dial-${d.label}`} columns={AW} rows={AR} cells={d.cells(d.limit?.percent, warned(d))} />
+        <Raster key={key} columns={AW} rows={AR} cells={d.cells(d.limit?.percent, warned(d))} />
       </Box>
     )
-    const now = five.limit ? mode(five.limit.percent).name : ''
+    const now = main.limit ? mode(main.limit.percent).name : ''
     const tokens = context.tokens !== undefined ? ` ${Math.round(context.tokens / 1000)}k` : ''
     return (
       <Box flexDirection="column">
         <Box flexDirection="row" columnGap={1} paddingX={1} backgroundColor={HX.bg} alignItems="flex-start">
-          {side(week, false, [['CTX', context.percent === undefined ? '––%' : `${context.percent}%${tokens}`], ['COST', context.usd !== undefined ? `$${context.usd.toFixed(2)}` : '–']])}
-          {arc(week)}
+          {side(second, false, [['CTX', context.percent === undefined ? '––%' : `${context.percent}%${tokens}`], ['COST', context.usd !== undefined ? `$${context.usd.toFixed(2)}` : '–']])}
+          {arc(second, 'dial-second')}
           <Box flexDirection="column" width={RW} flexShrink={0} alignItems="center">
-            <Raster key={`dial-${five.label}`} columns={RW} rows={RW / 2} cells={five.cells(five.limit?.percent, warned(five))} />
-            <Text wrap="truncate-end"><Text color={HX.white}>{five.label}</Text><Text color={tone(five)} bold>{` ${pct(five)}`}</Text></Text>
-            <Text color={HX.grey} wrap="truncate-end">{reset(five)}</Text>
-            {warning(five)}
-            {/* The drive-mode row: the 5-hour window picks the lit one. */}
+            <Raster key="dial-main" columns={RW} rows={RW / 2} cells={main.cells(main.limit?.percent, warned(main))} />
+            <Text wrap="truncate-end"><Text color={HX.white}>{main.label}</Text><Text color={tone(main)} bold>{` ${pct(main)}`}</Text></Text>
+            <Text color={HX.grey} wrap="truncate-end">{reset(main) || ' '}</Text>
+            {warning(main)}
+            {/* The drive-mode row: the main gauge's percent picks the lit one, whatever it shows. */}
             <Box flexDirection="row" columnGap={1}>
               {['ROAD', 'SPORT', 'TRACK'].map((m, i) => (
                 <Text color={m === now ? hex(mode([0, 50, 80][i]!).px) : HX.grey} bold={m === now} inverse={m === now}>{m === now ? m : m.toLowerCase()}</Text>
               ))}
             </Box>
           </Box>
-          {arc(model)}
-          {side(model, true, [['TOOLS', `${turn.tools}`], ['AGENTS', `${running}`]])}
+          {arc(third, 'dial-third')}
+          {side(third, true, [['TOOLS', `${turn.tools}`], ['AGENTS', `${running}`]])}
         </Box>
       </Box>
     )

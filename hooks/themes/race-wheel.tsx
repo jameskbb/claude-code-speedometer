@@ -30,11 +30,12 @@ const set = (px: Uint32Array, pw: number, x: number, y: number, c: number) => {
   if (x >= 0 && x < pw && y >= 0 && y * pw + x < px.length) px[y * pw + x] = c
 }
 
-// The 5-hour window: the shift-light strip in its black housing, and under
-// it the LCD with the percent in big digits. A warned window rings the LCD
-// in red. Drawn from x = ox, 48 pixels wide and 18 tall.
+// The main gauge (the 5-hour window by default): the shift-light strip in
+// its black housing, and under it the LCD with the percent in big digits. A
+// warned main gauge rings the LCD in red. Drawn from x = ox, 48 pixels wide
+// and 18 tall.
 export const LW = 48
-function paintFive(px: Uint32Array, pw: number, ox: number, fill: number, warn: boolean, percent: number | undefined) {
+function paintMain(px: Uint32Array, pw: number, ox: number, fill: number, warn: boolean, percent: number | undefined) {
   for (let y = 0; y < 4; y += 1) for (let x = 0; x < LW; x += 1) set(px, pw, ox + x, y, FW.housing)
   const on = fill < 0 ? 0 : Math.round(fill * LEDS)
   for (let i = 0; i < LEDS; i += 1) {
@@ -92,13 +93,13 @@ function paintButton(px: Uint32Array, pw: number, x: number, y: number, c: numbe
 // A faint diagonal twill, as carbon fibre shows under lacquer.
 const carbon = (x: number, y: number) => (((x + y) >> 1) & 1 ? FW.weave : FW.carbon)
 
-// The LCD and shift lights alone, for the 5-hour dial.
+// The LCD and shift lights alone, for the main gauge.
 export const lcdCells = (percent: number | undefined, warn = false) => {
   const px = new Uint32Array(LW * 18).fill(PX.none)
-  paintFive(px, LW, 0, clamp(percent), warn, percent)
+  paintMain(px, LW, 0, clamp(percent), warn, percent)
   return encode(px, LW, 18)
 }
-// One rotary alone, in the weekly or model colour.
+// One rotary alone, in the second (blue) or third (orange) gauge's colour.
 export const rotaryCells = (cap: number) => (percent: number | undefined, warn = false) => {
   const px = new Uint32Array(RW * RW).fill(PX.none)
   paintRotary(px, RW, 6.5, 6.5, clamp(percent), warn, cap)
@@ -106,12 +107,12 @@ export const rotaryCells = (cap: number) => (percent: number | undefined, warn =
 }
 
 // The top of the wheel's body, one raster: the housing across the top with
-// a pair of flag lights at each end (red for a warned weekly or model
-// window), the shift lights and LCD in the middle, a rotary either side and
+// a pair of flag lights at each end (red for a warned second or third
+// gauge), the shift lights and LCD in the middle, a rotary either side and
 // small buttons between. Text rows sit under it on the same carbon.
 export const MW = 62
 export const MR = 9
-export type Readings = { five?: number; week?: number; model?: number; warn: [boolean, boolean, boolean] }
+export type Readings = { main?: number; second?: number; third?: number; warn: [boolean, boolean, boolean] }
 export function wheelCells(r: Readings): string {
   const pw = MW
   const ph = MR * 2
@@ -121,9 +122,9 @@ export function wheelCells(r: Readings): string {
   for (const [x, warn] of [[2, r.warn[1]], [5, r.warn[1]], [55, r.warn[2]], [58, r.warn[2]]] as const) {
     for (const y of [1, 2]) for (const dx of [0, 1]) px[y * pw + x + dx] = warn ? FW.red : FW.lampOff
   }
-  paintFive(px, pw, 7, clamp(r.five), r.warn[0], r.five)
-  paintRotary(px, pw, 9.5, 10.5, clamp(r.week), r.warn[1], FW.blue)
-  paintRotary(px, pw, 51.5, 10.5, clamp(r.model), r.warn[2], FW.orange)
+  paintMain(px, pw, 7, clamp(r.main), r.warn[0], r.main)
+  paintRotary(px, pw, 9.5, 10.5, clamp(r.second), r.warn[1], FW.blue)
+  paintRotary(px, pw, 51.5, 10.5, clamp(r.third), r.warn[2], FW.orange)
   // Buttons by the LCD: context and white on the left, tools and agents on the right.
   paintButton(px, pw, 17, 6, FW.green)
   paintButton(px, pw, 17, 13, FW.white)
@@ -165,25 +166,25 @@ export function gripCells(right: boolean): string {
 export const theme: ThemeDef = {
   id: 'race-wheel',
   category: 'vehicles',
-  gauges: (five, week, model) => [
-    { ...five, w: LW, rows: 9, cells: lcdCells },
-    { ...week, w: RW, rows: RW / 2, cells: rotaryCells(FW.blue) },
-    { ...model, w: RW, rows: RW / 2, cells: rotaryCells(FW.orange) },
+  gauges: (main, second, third) => [
+    { ...main, w: LW, rows: 9, cells: lcdCells },
+    { ...second, w: RW, rows: RW / 2, cells: rotaryCells(FW.blue) },
+    { ...third, w: RW, rows: RW / 2, cells: rotaryCells(FW.orange) },
   ],
-  draw: ({ ui: { Box, Text, Raster }, five, week, model, warned, reset, empty, context, turn, running }: ThemeCtx) => {
+  draw: ({ ui: { Box, Text, Raster }, main, second, third, warned, reset, empty, context, turn, running }: ThemeCtx) => {
     const pct = (d: Dial) => (d.limit ? `${d.limit.percent}%` : '––%')
     const tone = (d: Dial) => (d.limit ? (d.limit.percent >= 80 ? 'error' : d.limit.percent >= 50 ? 'warning' : 'success') : TX.grey)
-    // A window's lines under its rotary or the LCD, then one button's readout.
+    // A gauge's lines under its rotary or the LCD, then one button's readout.
     const under = (d: Dial, w: number, dot: string, key: string, value: string) => (
       <Box flexDirection="column" width={w} flexShrink={0} alignItems="center">
         <Text color={tone(d)} bold>{pct(d)}</Text>
         <Text color={TX.white} wrap="truncate-end">{d.label}</Text>
-        <Text color={TX.grey} wrap="truncate-end">{reset(d)}</Text>
+        <Text color={TX.grey} wrap="truncate-end">{reset(d) || ' '}</Text>
         {warned(d) ? <Text color="error" bold inverse wrap="truncate-end">{` ${empty(d)} `}</Text> : <Text> </Text>}
         <Text wrap="truncate-end"><Text color={dot}>{'● '}</Text><Text color={TX.grey}>{`${key} `}</Text><Text color={TX.white} bold>{value}</Text></Text>
       </Box>
     )
-    const cells = wheelCells({ five: five.limit?.percent, week: week.limit?.percent, model: model.limit?.percent, warn: [warned(five), warned(week), warned(model)] })
+    const cells = wheelCells({ main: main.limit?.percent, second: second.limit?.percent, third: third.limit?.percent, warn: [warned(main), warned(second), warned(third)] })
     const ctx = context.percent === undefined ? '––%' : `${context.percent}%${context.usd !== undefined ? ` $${context.usd.toFixed(2)}` : ''}`
     return (
       <Box flexDirection="row" alignItems="flex-start">
@@ -191,9 +192,9 @@ export const theme: ThemeDef = {
         <Box flexDirection="column" width={MW} flexShrink={0} backgroundColor={TX.carbon}>
           <Raster key="wheel" columns={MW} rows={MR} cells={cells} />
           <Box flexDirection="row">
-            {under(week, 20, TX.green, 'CTX', ctx)}
-            {under(five, 22, TX.yellow, 'TOOLS', `${turn.tools}`)}
-            {under(model, 20, TX.purple, 'AGENTS', `${running}`)}
+            {under(second, 20, TX.green, 'CTX', ctx)}
+            {under(main, 22, TX.yellow, 'TOOLS', `${turn.tools}`)}
+            {under(third, 20, TX.purple, 'AGENTS', `${running}`)}
           </Box>
         </Box>
         <Raster key="grip-right" columns={GW} rows={GR} cells={gripCells(true)} />

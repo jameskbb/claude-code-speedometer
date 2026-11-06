@@ -2,8 +2,9 @@
 // science fiction: a black void, gauges as glowing neon rings like lit
 // discs, lit clockwise from the top with a white-hot head, and a
 // grid floor running to a lit horizon below them, where two light trails
-// race in from either side. Cyan for the user's windows, orange for the
-// model's, as two rivals' colours.
+// race in from either side. The big middle ring is the main gauge (the
+// 5-hour window by default), the cyan ring on the left the second and the
+// orange ring on the right the third, as two rivals' colours.
 import { clamp, encode, PX } from './kit'
 import type { Dial, Gauge, ThemeCtx, ThemeDef } from './kit'
 
@@ -51,7 +52,7 @@ export function ringCells(w: number, percent: number | undefined, warn: boolean,
 
 export const bigRing = (p: number | undefined, warn = false) => ringCells(RB, p, warn, CYAN)
 export const sideRing = (p: number | undefined, warn = false) => ringCells(RS, p, warn, CYAN)
-export const modelRing = (p: number | undefined, warn = false) => ringCells(RS, p, warn, ORANGE)
+export const thirdRing = (p: number | undefined, warn = false) => ringCells(RS, p, warn, ORANGE)
 
 // The grid floor, w pixels wide and five rows deep: a lit horizon on top,
 // cross lines spreading out toward the viewer and floor lines fanning out
@@ -96,19 +97,19 @@ export function floorCells(w: number, left: number | undefined, right: number | 
 
 const big: Gauge = { w: RB, rows: RB / 2, cells: bigRing }
 const side: Gauge = { w: RS, rows: RS / 2, cells: sideRing }
-const orange: Gauge = { w: RS, rows: RS / 2, cells: modelRing }
+const orange: Gauge = { w: RS, rows: RS / 2, cells: thirdRing }
 
 export const theme: ThemeDef = {
   id: 'neon-grid',
   category: 'vehicles',
-  gauges: (five, week, model) => [{ ...five, ...big }, { ...week, ...side }, { ...model, ...orange }],
-  draw: ({ ui: { Box, Text, Raster }, five, week, model, warned, reset, empty, context, turn, running }: ThemeCtx) => {
-    const ring = (d: Dial, c: Glow, width: number) => (
+  gauges: (main, second, third) => [{ ...main, ...big }, { ...second, ...side }, { ...third, ...orange }],
+  draw: ({ ui: { Box, Text, Raster }, main, second, third, warned, reset, empty, context, turn, running }: ThemeCtx) => {
+    const ring = (d: Dial, c: Glow, width: number, key: string) => (
       <Box flexDirection="column" width={width} flexShrink={0} alignItems="center">
-        <Raster key={`dial-${d.label}`} columns={d.w} rows={d.rows} cells={d.cells(d.limit?.percent, warned(d))} />
+        <Raster key={key} columns={d.w} rows={d.rows} cells={d.cells(d.limit?.percent, warned(d))} />
         <Text color={c.text} bold>{d.limit ? `${d.limit.percent}%` : '––%'}</Text>
         <Text color={c.text} wrap="truncate-end">{d.label.toUpperCase()}</Text>
-        <Text color={c.soft} wrap="truncate-end">{reset(d)}</Text>
+        <Text color={c.soft} wrap="truncate-end">{reset(d) || ' '}</Text>
         {warned(d) ? <Text color="error" bold inverse wrap="truncate-end">{` ${empty(d)} `}</Text> : <Text> </Text>}
       </Box>
     )
@@ -118,9 +119,9 @@ export const theme: ThemeDef = {
       <Box flexDirection="column">
         <Box flexDirection="column" paddingX={1} backgroundColor={VOID.panel} alignItems="center">
           <Box flexDirection="row" columnGap={3} alignItems="flex-end">
-            {ring(week, CYAN, RS + 2)}
-            {ring(five, CYAN, RB)}
-            {ring(model, ORANGE, RS + 2)}
+            {ring(second, CYAN, RS + 2, 'dial-second')}
+            {ring(main, CYAN, RB, 'dial-main')}
+            {ring(third, ORANGE, RS + 2, 'dial-third')}
           </Box>
           <Raster key="floor" columns={FLOOR} rows={FR} cells={floorCells(FLOOR, p, Math.min(100, turn.tools * 5))} />
           <Box flexDirection="row" width={FLOOR} justifyContent="space-between">

@@ -2,8 +2,9 @@
 // spartan analogue dash: round black-faced gauges with orange-red markings
 // and white needles, set straight into a dark felt panel with no trim. A big
 // tachometer in the middle with its redline band, the speedometer and a
-// second main gauge either side, and small temperature, oil, boost and clock
-// gauges between them.
+// matching gauge either side, and small temperature, oil, boost and clock
+// gauges between them. The tach is the main gauge (the 5-hour window by
+// default), the speedometer the second and the right-hand gauge the third.
 import { clamp, encode, PX, seconds } from './kit'
 import type { Dial, Gauge, ThemeCtx, ThemeDef } from './kit'
 
@@ -11,7 +12,7 @@ const SS = {
   face: 0x050505, bezel: 0x3c3c3c, tick: 0xff7a1a, minor: 0xb85a18, redline: 0xe8261a, needle: 0xf4f4f4, hub: 0x5a5a5a, lamp: 0xff1f1f,
   panel: '#1a1918', orange: '#ff7a1a', white: '#f4f4f4', grey: '#8a8580',
 }
-// The tachometer, the two main gauges either side, and the small gauges.
+// The tachometer, the two side gauges either side of it, and the small gauges.
 export const TW = 22
 export const MW = 18
 export const SM = 10
@@ -70,26 +71,25 @@ export function f40Cells(w: number, percent: number | undefined, warn: boolean, 
 }
 
 // The tachometer reads clockwise through 240 degrees to a redline at 7,750
-// of 10,000 rpm; the speedometer and model gauge share its sweep, redlined
-// at 80%. The small gauges sweep 90 degrees across their top.
+// of 10,000 rpm; the two side gauges share its sweep, redlined at 80%. The small gauges sweep 90 degrees across their top.
 export const tachCells = (p: number | undefined, warn = false) => f40Cells(TW, p, warn, Math.PI * 7 / 6, Math.PI * -1 / 6, 10, 0.775)
 export const mainCells = (p: number | undefined, warn = false) => f40Cells(MW, p, warn, Math.PI * 7 / 6, Math.PI * -1 / 6, 8, 0.8)
 export const smallCells = (p: number | undefined, warn = false) => f40Cells(SM, p, warn, Math.PI * 0.75, Math.PI * 0.25, 2, 0.8)
 
 const tach: Gauge = { w: TW, rows: TW / 2, cells: tachCells }
-const main: Gauge = { w: MW, rows: MW / 2, cells: mainCells }
+const side: Gauge = { w: MW, rows: MW / 2, cells: mainCells }
 
 export const theme: ThemeDef = {
   id: 'spartan-supercar',
   category: 'vehicles',
-  gauges: (five, week, model) => [{ ...five, ...tach }, { ...week, ...main }, { ...model, ...main }],
-  draw: ({ ui: { Box, Text, Raster }, five, week, model, warned, reset, empty, context, turn, running }: ThemeCtx) => {
-    const gauge = (d: Dial, width: number) => (
+  gauges: (main, second, third) => [{ ...main, ...tach }, { ...second, ...side }, { ...third, ...side }],
+  draw: ({ ui: { Box, Text, Raster }, main, second, third, warned, reset, empty, context, turn, running }: ThemeCtx) => {
+    const gauge = (d: Dial, width: number, key: string) => (
       <Box flexDirection="column" width={width} flexShrink={0} alignItems="center">
-        <Raster key={`dial-${d.label}`} columns={d.w} rows={d.rows} cells={d.cells(d.limit?.percent, warned(d))} />
+        <Raster key={key} columns={d.w} rows={d.rows} cells={d.cells(d.limit?.percent, warned(d))} />
         <Text color={SS.white} bold>{d.limit ? `${d.limit.percent}%` : '––%'}</Text>
         <Text color={SS.orange} wrap="truncate-end">{d.label}</Text>
-        <Text color={SS.grey} wrap="truncate-end">{reset(d)}</Text>
+        <Text color={SS.grey} wrap="truncate-end">{reset(d) || ' '}</Text>
         {warned(d) ? <Text color="error" bold inverse wrap="truncate-end">{` ${empty(d)} `}</Text> : <Text> </Text>}
       </Box>
     )
@@ -106,7 +106,7 @@ export const theme: ThemeDef = {
     return (
       <Box flexDirection="column">
         <Box flexDirection="row" columnGap={1} paddingX={1} backgroundColor={SS.panel} alignItems="flex-end">
-          {gauge(week, MW)}
+          {gauge(second, MW, 'dial-second')}
           <Box flexDirection="column" flexShrink={0}>
             {small('temp', 'TEMP', p, p === undefined ? '––' : `${p}%`)}
             {small('oil', 'OIL', Math.min(100, turn.tools * 5), `${turn.tools}`)}
@@ -114,7 +114,7 @@ export const theme: ThemeDef = {
             <Text> </Text>
             <Text> </Text>
           </Box>
-          {gauge(five, TW)}
+          {gauge(main, TW, 'dial-main')}
           <Box flexDirection="column" flexShrink={0}>
             {small('boost', 'BOOST', Math.min(100, running * 20), `${running}`)}
             {small('time', 'TIME', turn.count ? Math.min(100, turn.lastMs / 1200) : undefined, turn.count ? seconds(turn.lastMs) : '––')}
@@ -122,7 +122,7 @@ export const theme: ThemeDef = {
             <Text> </Text>
             <Text> </Text>
           </Box>
-          {gauge(model, MW)}
+          {gauge(third, MW, 'dial-third')}
         </Box>
       </Box>
     )
