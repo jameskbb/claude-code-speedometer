@@ -419,3 +419,14 @@ test('the band warns for every window on course to run out, on a dial or not', {
   expect(await band.find({ type: 'Text', text: /5-hour|context|undefined|NaN/ })).toBeUndefined()
   await band.unmount()
 })
+
+// Two slots on one source must not draw two rasters under one key.
+for (const theme of THEMES.filter(t => t !== 'minimal')) {
+  test(`${theme} draws with the same source in every slot`, { options: { theme, gauge1: 'context', gauge2: 'context', gauge3: 'context' } }, async ($, on) => {
+    noFive(on)
+    const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+    expect(await ui.find({ type: 'Text', text: /undefined|NaN/ })).toBeUndefined()
+    expect(await ui.find({ type: 'Raster' } as never)).toBeDefined()
+    await ui.unmount()
+  })
+}

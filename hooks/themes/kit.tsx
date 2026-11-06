@@ -109,10 +109,6 @@ export type ThemeCtx = {
   main: Dial
   second: Dial
   third: Dial
-  // Deprecated aliases of main, second and third, kept while themes move over.
-  five: Dial
-  week: Dial
-  model: Dial
   // True when the burn rate says this dial's window runs out before its reset.
   warned: (d: Dial) => boolean
   // `↻ 2h14m` to the reset, '' when the window has no reset, `no reading` with no window.
@@ -143,13 +139,13 @@ export type ThemeDef = {
 export const placeholder = (id: string, category: Category): ThemeDef => ({
   id,
   category,
-  gauges: (five, week, model) => [{ ...five, ...arc(DW) }, { ...week, ...arc(DW) }, { ...model, ...arc(DW) }],
-  draw: ({ ui: { Box, Text, Raster }, five, week, model, warned, reset, empty }) => (
+  gauges: (main, second, third) => [{ ...main, ...arc(DW) }, { ...second, ...arc(DW) }, { ...third, ...arc(DW) }],
+  draw: ({ ui: { Box, Text, Raster }, main, second, third, warned, reset, empty }) => (
     <Box flexDirection="column">
       <Box flexDirection="row" columnGap={2}>
-        {[five, week, model].map(d => (
+        {[main, second, third].map((d, i) => (
           <Box flexDirection="column" width={d.w} flexShrink={0} alignItems="center">
-            <Raster key={`dial-${d.label}`} columns={d.w} rows={d.rows} cells={d.cells(d.limit?.percent, warned(d))} />
+            <Raster key={`dial-${i}`} columns={d.w} rows={d.rows} cells={d.cells(d.limit?.percent, warned(d))} />
             <Text color={d.limit ? zone(d.limit.percent) : 'inactive'} bold>{d.limit ? `${d.limit.percent}%` : '––%'}</Text>
             <Text dimColor wrap="truncate-end">{d.label}</Text>
             <Text dimColor wrap="truncate-end">{reset(d)}</Text>

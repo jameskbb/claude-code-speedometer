@@ -675,7 +675,6 @@ export const register: Register = (on, options) => {
       const ctx: ThemeCtx = {
         ui: $.ui.resolve(e),
         main, second, third,
-        five: main, week: second, model: third,
         warned: d => d.limit !== undefined && d.limit.kind in warn,
         reset: d => (d.limit?.resetsAt ? `↻ ${until(d.limit.resetsAt, now)}` : d.limit ? '' : 'no reading'),
         empty: d => `! empty in ${until(new Date(warn[d.limit?.kind ?? ''] ?? now).toISOString(), now)}`,
@@ -695,9 +694,9 @@ export const register: Register = (on, options) => {
       const empty = (d: Dial) => `! empty in ${until(new Date(warn[d.limit?.kind ?? ''] ?? now).toISOString(), now)}`
       const pct = (d: Dial) => (d.limit ? `${d.limit.percent}%` : '––%')
       const silver = (text: string) => <Text color={SN.silver} wrap="truncate-end">{text}</Text>
-      const big = (d: Dial) => (
+      const big = (d: Dial, slot: string) => (
         <Box flexDirection="column" width={MJ} flexShrink={0} alignItems="center">
-          <Raster key={`dial-${d.label}`} columns={MJ} rows={MJ / 2} cells={d.cells(d.limit?.percent, warned(d))} />
+          <Raster key={`dial-${slot}`} columns={MJ} rows={MJ / 2} cells={d.cells(d.limit?.percent, warned(d))} />
           <Text color="#ffffff" bold>{pct(d)}</Text>
           {silver(d.label)}
           {/* A blank line for a dial with no reset, so the big gauges keep one baseline. */}
@@ -719,7 +718,7 @@ export const register: Register = (on, options) => {
       return (
         <Box flexDirection="column">
           <Box flexDirection="row" columnGap={1} paddingX={1} backgroundColor={SN.panel} alignItems="flex-start">
-            {big(main)}
+            {big(main, 'main')}
             <Box flexDirection="column" width={25} flexShrink={0} alignItems="center">
               <Box flexDirection="row" columnGap={1}>
                 {small('fuel', 'LEFT', second.limit?.percent, second.limit ? `${100 - second.limit.percent}%` : '––%', warned(second))}
@@ -732,7 +731,7 @@ export const register: Register = (on, options) => {
               <Text color={SN.silver} wrap="truncate-end">{[second.label, pct(second), reset(second)].filter(Boolean).join(' ')}</Text>
               {warned(second) ? <Text color="error" bold inverse wrap="truncate-end">{` ${empty(second)} `}</Text> : <Text> </Text>}
             </Box>
-            {big(third)}
+            {big(third, 'third')}
           </Box>
         </Box>
       )
@@ -751,9 +750,9 @@ export const register: Register = (on, options) => {
         amber(`│${label.slice(0, 7).padEnd(7)}${value.slice(0, 5).padStart(5)}│`, true),
         amber(`╰${'─'.repeat(12)}╯`),
       ]
-      const gauge = (d: Dial, digitsLeft: boolean) => (
+      const gauge = (d: Dial, digitsLeft: boolean, slot: string) => (
         <Box flexDirection="column" width={SW} flexShrink={0} alignItems={digitsLeft ? 'flex-start' : 'flex-end'}>
-          <Raster key={`dial-${d.label}`} columns={SW} rows={SR} cells={d.cells(d.limit?.percent, warned(d))} />
+          <Raster key={`dial-${slot}`} columns={SW} rows={SR} cells={d.cells(d.limit?.percent, warned(d))} />
           <Text color={LCD.digit} bold wrap="truncate-end">{d.limit ? `${d.limit.percent}%` : '––%'}</Text>
           <Text color={LCD.digit} wrap="truncate-end">{d.label}</Text>
           {/* A blank line for a dial with no reset, so the sweeps keep one baseline. */}
@@ -764,7 +763,7 @@ export const register: Register = (on, options) => {
       return (
         <Box flexDirection="column">
           <Box flexDirection="row" columnGap={1} paddingX={1} backgroundColor={LCD.panel} alignItems="flex-start">
-            {gauge(main, true)}
+            {gauge(main, true, 'main')}
             <Box flexDirection="column" alignItems="center" width={36} flexShrink={0}>
               <Box flexDirection="row" columnGap={1}>
                 <Box flexDirection="column" width={14} flexShrink={0}>
@@ -786,7 +785,7 @@ export const register: Register = (on, options) => {
               <Text dimColor wrap="truncate-end">{reset(second) || ' '}</Text>
               {warned(second) ? <Text color="error" bold inverse wrap="truncate-end">{` RESERVE ${empty(second)} `}</Text> : <Text> </Text>}
             </Box>
-            {gauge(third, false)}
+            {gauge(third, false, 'third')}
           </Box>
         </Box>
       )

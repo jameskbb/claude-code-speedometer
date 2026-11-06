@@ -200,7 +200,7 @@ Laid out like a late-1980s American sports car LCD dash on a black panel. The ma
 **`silver-bezel`**: an early-2000s muscle car cluster: white faces in silver bezels.
 
 <p align="center">
-  <img src="docs/images/cluster-silver-bezel.png" alt="The silver-bezel cluster: white-faced round gauges in silver bezels, the 5-hour gauge at 62% with an empty-in warning on the left, four small gauges for WK LEFT 63%, CONTEXT 42%, TOOLS 7 and AGENTS 1 in the middle, and the Fable weekly gauge at 84% on the right" width="100%">
+  <img src="docs/images/cluster-silver-bezel.png" alt="The silver-bezel cluster: white-faced round gauges in silver bezels, the 5-hour gauge at 62% with an empty-in warning on the left, four small gauges for LEFT 63%, CONTEXT 42%, TOOLS 7 and AGENTS 1 in the middle, and the Fable weekly gauge at 84% on the right" width="100%">
 </p>
 
 <details>
