@@ -5,7 +5,7 @@
 // cheeks. The main gauge (the 5-hour window by default) is the left channel,
 // the third gauge the right, and the second gauge a peak-hold LED ladder
 // between them.
-import { clamp, encode, PX } from './kit'
+import { clamp, encode, line, PX, reading } from './kit'
 import type { Dial, ThemeDef } from './kit'
 
 export const VW = 26
@@ -127,15 +127,14 @@ export const theme: ThemeDef = {
   category: 'beyond',
   gauges: (main, second, third) => [{ ...main, ...meter }, { ...second, ...ladder }, { ...third, ...meter }],
   draw: ({ ui: { Box, Text, Raster }, main, second, third, warned, reset, empty }) => {
-    const pct = (d: Dial) => (d.limit ? `${d.limit.percent}%` : '––%')
     const tone = (d: Dial) => (d.limit && d.limit.percent >= 80 ? VU.scaleRed : VU.ink2)
     const warning = (d: Dial) => (warned(d) ? <Text color="error" bold inverse wrap="truncate-end">{` ${empty(d)} `}</Text> : <Text> </Text>)
     const channel = (d: Dial, slot: string, side: string) => (
       <Box flexDirection="column" width={VW} flexShrink={0} alignItems="center">
         <Raster key={`dial-${slot}`} columns={VW} rows={VR} cells={d.cells(d.limit?.percent, warned(d))} />
-        <Text wrap="truncate-end"><Text color={VU.engr}>{`${side}  `}</Text><Text color={tone(d)} bold>{pct(d)}</Text></Text>
+        <Text wrap="truncate-end"><Text color={VU.engr}>{`${side}  `}</Text><Text color={tone(d)} bold>{reading(d)}</Text></Text>
         <Text color={VU.ink2} wrap="truncate-end">{d.label}</Text>
-        <Text color={VU.engr} wrap="truncate-end">{reset(d) || ' '}</Text>
+        <Text color={VU.engr} wrap="truncate-end">{line(reset(d))}</Text>
         {warning(d)}
       </Box>
     )
@@ -151,9 +150,9 @@ export const theme: ThemeDef = {
               <Raster key="dial-second" columns={LW} rows={LR} cells={second.cells(second.limit?.percent, warned(second))} />
               {/* The scale under the LEDs, red from 0 VU like the meters. */}
               <Text wrap="truncate-end"><Text color={VU.engr}>{'-20   -10  -5  '}</Text><Text color={VU.scaleRed} bold>{'0  +3 PK'}</Text></Text>
-              <Text color={tone(second)} bold>{pct(second)}</Text>
+              <Text color={tone(second)} bold>{reading(second)}</Text>
               <Text color={VU.ink2} wrap="truncate-end">{second.label}</Text>
-              <Text color={VU.engr} wrap="truncate-end">{reset(second) || ' '}</Text>
+              <Text color={VU.engr} wrap="truncate-end">{line(reset(second))}</Text>
               {warning(second)}
               <Raster key="knobs" columns={LW} rows={3} cells={knobCells()} />
               <Text color={VU.engr} wrap="truncate-end">{' BALANCE    VOLUME'}</Text>

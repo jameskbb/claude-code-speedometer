@@ -4,7 +4,7 @@
 // copper pipes joining them. The main gauge (the 5-hour window by default) is
 // the boiler gauge in the middle; the second gauge hangs off the left pipe
 // under a steam whistle and the third off the right one under a valve wheel.
-import { clamp, encode, PX } from './kit'
+import { clamp, encode, line, PX, reading } from './kit'
 import type { Dial, ThemeCtx, ThemeDef } from './kit'
 
 const SP = {
@@ -156,9 +156,9 @@ export const theme: ThemeDef = {
       <Box flexDirection="column" width={d.w} flexShrink={0} alignItems={side}>
         <Raster key={`dial-${slot}`} columns={d.w} rows={d.rows} cells={d.cells(d.limit?.percent, warned(d))} />
         <Box flexDirection="column" width={faceCols} flexShrink={0} alignItems="center">
-          <Text color={SP.plateInk} backgroundColor={SP.plate} bold>{d.limit ? ` ${d.limit.percent}% ` : ' ––% '}</Text>
+          <Text color={SP.plateInk} backgroundColor={SP.plate} bold>{` ${reading(d)} `}</Text>
           <Text color={SP.cream} wrap="truncate-end">{d.label}</Text>
-          <Text dimColor wrap="truncate-end">{reset(d) || ' '}</Text>
+          <Text dimColor wrap="truncate-end">{line(reset(d))}</Text>
         </Box>
         {warned(d) ? <Text color="error" bold inverse wrap="truncate-end">{` ${empty(d)} `}</Text> : <Text> </Text>}
       </Box>

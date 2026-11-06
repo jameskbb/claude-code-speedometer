@@ -3,7 +3,7 @@
 // the slot's reading has left, so a battery drains as its window (or the
 // context window) fills. Its cells take the zone colour of the percent used,
 // and a warned battery gets a red exclamation mark beside its terminal.
-import { clamp, encode, PX, zone, zonePx } from './kit'
+import { clamp, encode, line, PX, reading, zone, zonePx } from './kit'
 import type { Dial, ThemeCtx, ThemeDef } from './kit'
 
 // No reading: a dimmer shell and no charge.
@@ -61,11 +61,11 @@ export const theme: ThemeDef = {
         <Box flexDirection="column" width={d.w} flexShrink={0}>
           <Raster key={`dial-${i}`} columns={d.w} rows={d.rows} cells={d.cells(d.limit?.percent, warned(d))} />
           <Text wrap="truncate-end">
-            <Text color={d.limit ? zone(d.limit.percent) : 'inactive'} bold>{d.limit ? `${d.limit.percent}%` : '––%'}</Text>
+            <Text color={d.limit ? zone(d.limit.percent) : 'inactive'} bold>{reading(d)}</Text>
             <Text dimColor>{d.limit ? ' used' : ''}</Text>
           </Text>
           <Text wrap="truncate-end">{d.label}</Text>
-          <Text dimColor wrap="truncate-end">{reset(d) || ' '}</Text>
+          <Text dimColor wrap="truncate-end">{line(reset(d))}</Text>
           <Text color="error" bold wrap="truncate-end">{warned(d) ? empty(d) : ' '}</Text>
         </Box>
       ))}

@@ -5,7 +5,7 @@
 // race in from either side. The big middle ring is the main gauge (the
 // 5-hour window by default), the cyan ring on the left the second and the
 // orange ring on the right the third, as two rivals' colours.
-import { clamp, encode, PX } from './kit'
+import { clamp, encode, line, pct, PX, reading } from './kit'
 import type { Dial, Gauge, ThemeCtx, ThemeDef } from './kit'
 
 type Glow = { core: number; glow: number; dim: number; text: string; soft: string }
@@ -107,9 +107,9 @@ export const theme: ThemeDef = {
     const ring = (d: Dial, c: Glow, width: number, key: string) => (
       <Box flexDirection="column" width={width} flexShrink={0} alignItems="center">
         <Raster key={key} columns={d.w} rows={d.rows} cells={d.cells(d.limit?.percent, warned(d))} />
-        <Text color={c.text} bold>{d.limit ? `${d.limit.percent}%` : '––%'}</Text>
+        <Text color={c.text} bold>{reading(d)}</Text>
         <Text color={c.text} wrap="truncate-end">{d.label.toUpperCase()}</Text>
-        <Text color={c.soft} wrap="truncate-end">{reset(d) || ' '}</Text>
+        <Text color={c.soft} wrap="truncate-end">{line(reset(d))}</Text>
         {warned(d) ? <Text color="error" bold inverse wrap="truncate-end">{` ${empty(d)} `}</Text> : <Text> </Text>}
       </Box>
     )
@@ -125,7 +125,7 @@ export const theme: ThemeDef = {
           </Box>
           <Raster key="floor" columns={FLOOR} rows={FR} cells={floorCells(FLOOR, p, Math.min(100, turn.tools * 5))} />
           <Box flexDirection="row" width={FLOOR} justifyContent="space-between">
-            <Text color={CYAN.text} bold>{`CONTEXT ${p === undefined ? '––%' : `${p}%`}`}</Text>
+            <Text color={CYAN.text} bold>{`CONTEXT ${pct(p)}`}</Text>
             <Text color={CYAN.soft}>{`AGENTS ${running}`}</Text>
             <Text color={ORANGE.text} bold>{`TOOLS ${turn.tools}`}</Text>
           </Box>

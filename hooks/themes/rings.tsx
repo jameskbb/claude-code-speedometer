@@ -3,7 +3,7 @@
 // filling clockwise from twelve o'clock over a dim track, with rounded ends
 // and the percent in the hole. The ring is green, then yellow past 50% and
 // red past 80%; a warned ring carries a red bead at its head.
-import { clamp, encode, PX, zone, zonePx } from './kit'
+import { clamp, encode, line, PX, reading, zone, zonePx } from './kit'
 import type { Dial, ThemeCtx, ThemeDef } from './kit'
 
 // A ring N pixels across and N tall: N / 2 rows, an odd count so one row
@@ -91,13 +91,13 @@ export const theme: ThemeDef = {
           <Box flexDirection="row" width={d.w}>
             <Raster key={`dial-${i}-l`} columns={side} rows={1} cells={cut(cells, d.w, 0, mid, side, 1)} />
             <Box width={hole} flexShrink={0} justifyContent="center">
-              <Text color={d.limit ? zone(d.limit.percent) : 'inactive'} bold>{d.limit ? `${d.limit.percent}%` : '––%'}</Text>
+              <Text color={d.limit ? zone(d.limit.percent) : 'inactive'} bold>{reading(d)}</Text>
             </Box>
             <Raster key={`dial-${i}-r`} columns={side} rows={1} cells={cut(cells, d.w, d.w - side, mid, side, 1)} />
           </Box>
           <Raster key={`dial-${i}-b`} columns={d.w} rows={mid} cells={cut(cells, d.w, 0, mid + 1, d.w, mid)} />
           <Text wrap="truncate-end">{d.label}</Text>
-          <Text dimColor wrap="truncate-end">{reset(d) || ' '}</Text>
+          <Text dimColor wrap="truncate-end">{line(reset(d))}</Text>
           <Text color="error" bold wrap="truncate-end">{warned(d) ? empty(d) : ' '}</Text>
         </Box>
       )

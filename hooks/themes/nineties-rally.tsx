@@ -4,7 +4,7 @@
 // backlights gave off at night. A big tachometer in the middle, the
 // speedometer and a second main gauge either side, and small temperature,
 // fuel, boost and tool gauges at the outer edges.
-import { clamp, encode, PX } from './kit'
+import { clamp, encode, line, pct, PX, reading } from './kit'
 import type { Dial, ThemeCtx, ThemeDef } from './kit'
 
 const GC = {
@@ -168,8 +168,8 @@ export const theme: ThemeDef = {
     // The window's lines under its gauge: percent and label, reset, warning.
     const under = (d: Dial, w: number) => (
       <Box flexDirection="column" width={w} flexShrink={0} alignItems="center">
-        <Text wrap="truncate-end"><Text color={GC.white} bold>{d.limit ? `${d.limit.percent}%` : '––%'}</Text><Text color={GC.orange}> {d.label}</Text></Text>
-        <Text color={GC.grey} wrap="truncate-end">{reset(d) || ' '}</Text>
+        <Text wrap="truncate-end"><Text color={GC.white} bold>{reading(d)}</Text><Text color={GC.orange}> {d.label}</Text></Text>
+        <Text color={GC.grey} wrap="truncate-end">{line(reset(d))}</Text>
         {warned(d) ? <Text color="error" bold inverse wrap="truncate-end">{w > 20 ? ` ${empty(d)} ` : empty(d)}</Text> : <Text> </Text>}
       </Box>
     )
@@ -189,7 +189,7 @@ export const theme: ThemeDef = {
         <Box flexDirection="column" paddingX={1} backgroundColor={GC.panel} alignItems="flex-start">
           <Raster key="binnacle" columns={CW} rows={CR} cells={cells} />
           <Box flexDirection="row">
-            {outer([['TEMP', p === undefined ? '––%' : `${p}%`], ['FUEL', left]])}
+            {outer([['TEMP', pct(p)], ['FUEL', left]])}
             {under(second, 17)}
             {under(main, 26)}
             {under(third, 17)}

@@ -5,7 +5,7 @@
 // matching gauge either side, and small temperature, oil, boost and clock
 // gauges between them. The tach is the main gauge (the 5-hour window by
 // default), the speedometer the second and the right-hand gauge the third.
-import { clamp, encode, PX, seconds } from './kit'
+import { clamp, encode, line, pct, PX, reading, seconds } from './kit'
 import type { Dial, Gauge, ThemeCtx, ThemeDef } from './kit'
 
 const SS = {
@@ -87,9 +87,9 @@ export const theme: ThemeDef = {
     const gauge = (d: Dial, width: number, key: string) => (
       <Box flexDirection="column" width={width} flexShrink={0} alignItems="center">
         <Raster key={key} columns={d.w} rows={d.rows} cells={d.cells(d.limit?.percent, warned(d))} />
-        <Text color={SS.white} bold>{d.limit ? `${d.limit.percent}%` : '––%'}</Text>
+        <Text color={SS.white} bold>{reading(d)}</Text>
         <Text color={SS.orange} wrap="truncate-end">{d.label}</Text>
-        <Text color={SS.grey} wrap="truncate-end">{reset(d) || ' '}</Text>
+        <Text color={SS.grey} wrap="truncate-end">{line(reset(d))}</Text>
         {warned(d) ? <Text color="error" bold inverse wrap="truncate-end">{` ${empty(d)} `}</Text> : <Text> </Text>}
       </Box>
     )
@@ -108,7 +108,7 @@ export const theme: ThemeDef = {
         <Box flexDirection="row" columnGap={1} paddingX={1} backgroundColor={SS.panel} alignItems="flex-end">
           {gauge(second, MW, 'dial-second')}
           <Box flexDirection="column" flexShrink={0}>
-            {small('temp', 'TEMP', p, p === undefined ? '––%' : `${p}%`)}
+            {small('temp', 'TEMP', p, pct(p))}
             {small('oil', 'OIL', Math.min(100, turn.tools * 5), `${turn.tools}`)}
             <Text> </Text>
             <Text> </Text>

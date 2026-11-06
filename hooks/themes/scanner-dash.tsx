@@ -3,7 +3,7 @@
 // the red voice display in the middle (three columns of bars that grow out
 // from the centre line), and a bank of small lit buttons, a segmented
 // readout and an LED bar graph either side.
-import { clamp, encode, PX } from './kit'
+import { clamp, encode, line, pct, PX, reading } from './kit'
 import type { Dial, ThemeCtx, ThemeDef } from './kit'
 
 // The pixels: the voice and scanner reds, the lit button colours and their
@@ -140,19 +140,18 @@ export const theme: ThemeDef = {
     { ...third, w: BW, rows: ROWS, cells: bankCells },
   ],
   draw: ({ ui: { Box, Text, Raster }, main, second, third, warned, reset, empty, context, turn, running }: ThemeCtx) => {
-    const pct = (d: Dial) => (d.limit ? `${d.limit.percent}%` : '––%')
     const tone = (d: Dial) => (!d.limit ? TX.dim : d.limit.percent >= 80 ? TX.red : d.limit.percent >= 50 ? TX.amber : TX.green)
     // A window's lines under its raster: percent and name, reset, then the warning.
     const lines = (d: Dial, w: number) => (
       <Box flexDirection="column" width={w} flexShrink={0} alignItems="center">
-        <Text wrap="truncate-end"><Text color={tone(d)} bold>{pct(d)}</Text><Text color={TX.white}>{` ${d.label}`}</Text></Text>
-        <Text color={TX.grey} wrap="truncate-end">{reset(d) || ' '}</Text>
+        <Text wrap="truncate-end"><Text color={tone(d)} bold>{reading(d)}</Text><Text color={TX.white}>{` ${d.label}`}</Text></Text>
+        <Text color={TX.grey} wrap="truncate-end">{line(reset(d))}</Text>
         {warned(d) ? <Text color="error" bold inverse wrap="truncate-end">{` ${empty(d)} `}</Text> : <Text> </Text>}
       </Box>
     )
     const p = main.limit?.percent
     const mode = p === undefined ? -1 : p >= 80 ? 2 : p >= 50 ? 1 : 0
-    const ctx = context.percent === undefined ? '––%' : `${context.percent}%`
+    const ctx = pct(context.percent)
     const cost = context.usd === undefined ? '–' : `$${context.usd.toFixed(2)}`
     return (
       <Box flexDirection="column" backgroundColor={TX.panel} paddingX={1}>

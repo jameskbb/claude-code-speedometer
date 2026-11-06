@@ -6,7 +6,7 @@
 // mode's colour: green, then yellow, then orange as its gauge fills. The rev
 // display is the main gauge (the 5-hour window by default), and it picks the
 // lit drive mode; the side arcs are the second and third gauges.
-import { clamp, encode, PX } from './kit'
+import { clamp, encode, line, PX, reading } from './kit'
 import type { Dial, ThemeCtx, ThemeDef } from './kit'
 
 const HX = {
@@ -151,7 +151,6 @@ export const theme: ThemeDef = {
   ],
   draw: ({ ui: { Box, Text, Raster }, main, second, third, warned, reset, empty, context, turn, running }: ThemeCtx) => {
     const tone = (d: Dial) => (d.limit ? hex(mode(d.limit.percent).px) : HX.grey)
-    const pct = (d: Dial) => (d.limit ? `${d.limit.percent}%` : '––%')
     const warning = (d: Dial) => (warned(d) ? <Text color="error" bold inverse wrap="truncate-end">{` ${empty(d)} `}</Text> : <Text> </Text>)
     const W = 19
     // A readout in a stretched hexagon, the screen's own frame shape.
@@ -163,9 +162,9 @@ export const theme: ThemeDef = {
     // A side page: the gauge's reading, then two framed readouts.
     const side = (d: Dial, right: boolean, info: [string, string][]) => (
       <Box flexDirection="column" width={W} flexShrink={0} alignItems={right ? 'flex-end' : 'flex-start'}>
-        <Text color={tone(d)} bold>{pct(d)}</Text>
+        <Text color={tone(d)} bold>{reading(d)}</Text>
         <Text color={HX.white} wrap="truncate-end">{d.label}</Text>
-        <Text color={HX.grey} wrap="truncate-end">{reset(d) || ' '}</Text>
+        <Text color={HX.grey} wrap="truncate-end">{line(reset(d))}</Text>
         {warning(d)}
         <Text> </Text>
         {info.flatMap(([k, v]) => cell('#3c3c3c', k, v))}
@@ -185,8 +184,8 @@ export const theme: ThemeDef = {
           {arc(second, 'dial-second')}
           <Box flexDirection="column" width={RW} flexShrink={0} alignItems="center">
             <Raster key="dial-main" columns={RW} rows={RW / 2} cells={main.cells(main.limit?.percent, warned(main))} />
-            <Text wrap="truncate-end"><Text color={HX.white}>{main.label}</Text><Text color={tone(main)} bold>{` ${pct(main)}`}</Text></Text>
-            <Text color={HX.grey} wrap="truncate-end">{reset(main) || ' '}</Text>
+            <Text wrap="truncate-end"><Text color={HX.white}>{main.label}</Text><Text color={tone(main)} bold>{` ${reading(main)}`}</Text></Text>
+            <Text color={HX.grey} wrap="truncate-end">{line(reset(main))}</Text>
             {warning(main)}
             {/* The drive-mode row: the main gauge's percent picks the lit one, whatever it shows. */}
             <Box flexDirection="row" columnGap={1}>
