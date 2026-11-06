@@ -322,3 +322,100 @@ test('auto slots follow the plan: no 5-hour window moves weekly to the main gaug
   expect(slotOf('nonsense')).toBe('auto')
   expect(slotOf(undefined)).toBe('auto')
 })
+
+// A plan with no 5-hour window: auto puts weekly on the main gauge and
+// context fill on the second. `warn` seeds the burn-rate warnings.
+const noFive = (on: Parameters<Parameters<typeof test>[1]>[1], warn: Record<string, number> = {}) => {
+  mock.clock(on)
+  on('session.model', () => ({ value: 'claude-fable-5-1' }))
+  on('session.root', () => ({ value: '/proj' }))
+  on('env.get', () => ({ value: '/home/x' }))
+  const at = new Date(3 * 86_400_000).toISOString()
+  const seeded: Record<string, unknown> = {
+    warnings: { shape: 'warnings-1', value: warn },
+    limits: { shape: 'limits-1', value: [{ kind: 'weekly_all', label: 'weekly', percent: 30, resetsAt: at }, { kind: 'weekly_scoped', label: 'Fable weekly', percent: 10, resetsAt: at }] },
+    usage: { shape: 'usage-1', value: { percent: 42, tokens: 84000, window: 200000, rateLimits: [], usd: 1.23 } },
+  }
+  on('state.get', async (_, e, next) => {
+    const own = await next(e)
+    if (!('value' in own) || !own.value || own.value.value !== undefined) return own
+    return e.key in seeded ? { value: { value: seeded[e.key], version: 0 } } : own
+  })
+}
+
+const clean = async (ui: { find: (q: { type: 'Text'; text: RegExp }) => Promise<unknown> }) => {
+  expect(await ui.find({ type: 'Text', text: /undefined|NaN/ })).toBeUndefined()
+  expect(await ui.find({ type: 'Text', text: /5-hour/ })).toBeUndefined()
+}
+
+test('classic on a plan with no 5-hour window: weekly on the main gauge, context on the second', async ($, on) => {
+  noFive(on)
+  for (const surface of ['terminal', 'desktop'] as const) {
+    const ui = await $.ui.mount({ ...PANE, surface })
+    if (surface === 'terminal') {
+      expect(await ui.find({ type: 'Text', text: /^\s*weekly\s*$/ })).toBeDefined()
+      expect(await ui.find({ type: 'Text', text: /^\s*context\s*$/ })).toBeDefined()
+      expect(await ui.find({ type: 'Text', text: /^\s*42%\s*$/ })).toBeDefined()
+    } else {
+      expect((await ui.find({ type: 'Text', text: /^weekly/ }))?.text).toContain('30%')
+      expect((await ui.find({ type: 'Text', text: /^context/ }))?.text).toContain('42%')
+    }
+    expect(await ui.find({ type: 'Text', text: /no reading/ })).toBeUndefined()
+    await clean(ui)
+    await ui.unmount()
+  }
+})
+
+test('eighties-digital-dash follows the slots: weekly sweep, context in the fuel column', { options: { theme: 'eighties-digital-dash' } }, async ($, on) => {
+  noFive(on, { weekly_all: 3_600_000 })
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await ui.find({ type: 'Text', text: /^weekly$/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /^30%$/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /^CONTEXT 42%$/ })).toBeDefined()
+  // The warned weekly dial prints its own empty-in time; context is never warned.
+  expect(await ui.find({ type: 'Text', text: /! empty in 1h/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /RESERVE/ })).toBeUndefined()
+  await clean(ui)
+  await ui.unmount()
+})
+
+test('eighties-digital-dash keeps the second gauge label beside RESERVE', { options: { theme: 'eighties-digital-dash', gauge2: 'model-weekly' } }, async ($, on) => {
+  noFive(on, { weekly_scoped: 3_600_000 })
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await ui.find({ type: 'Text', text: /^FABLE WEEKLY 10%$/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /RESERVE ! empty in 1h/ })).toBeDefined()
+  await clean(ui)
+  await ui.unmount()
+})
+
+test('silver-bezel follows the slots: the fuel gauge reads what is left of the second', { options: { theme: 'silver-bezel' } }, async ($, on) => {
+  noFive(on)
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await ui.find({ type: 'Text', text: /^weekly$/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /^30%$/ })).toBeDefined()
+  // Context has no reset, so its caption ends at the percent.
+  expect(await ui.find({ type: 'Text', text: /^context 42%$/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /^LEFT 58%$/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /WK LEFT/ })).toBeUndefined()
+  await clean(ui)
+  await ui.unmount()
+})
+
+test('silver-bezel with no reading on the second gauge shows ––%', { options: { theme: 'silver-bezel', gauge2: 'five-hour' } }, async ($, on) => {
+  noFive(on)
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await ui.find({ type: 'Text', text: /^LEFT ––%$/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /^5-hour ––% no reading$/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /undefined|NaN/ })).toBeUndefined()
+  await ui.unmount()
+})
+
+test('the band warns for every window on course to run out, on a dial or not', { options: { gauge1: 'context', gauge2: 'weekly', gauge3: 'context' } }, async ($, on) => {
+  noFive(on, { weekly_all: 3_600_000, weekly_scoped: 7_200_000 })
+  const band = await $.ui.mount({ ...BAND, surface: 'terminal' })
+  expect((await band.find({ type: 'Text', text: /ctx/ }))?.text).toContain('42%')
+  expect(await band.find({ type: 'Text', text: /! weekly/ })).toBeDefined()
+  expect(await band.find({ type: 'Text', text: /! Fable weekly/ })).toBeDefined()
+  expect(await band.find({ type: 'Text', text: /5-hour|context|undefined|NaN/ })).toBeUndefined()
+  await band.unmount()
+})

@@ -38,8 +38,8 @@ const BADGE: Record<SpeedoMode, { glyph: string; label: string; color: Color }> 
 }
 
 // The eighties-digital-dash cluster, after a late-1980s LCD dash: on a black panel, a lit
-// sweep rising left to right that widens toward the top for the 5-hour and
-// model windows, a fuel-style bar with F, half and E marks for the weekly,
+// sweep rising left to right that widens toward the top for the main and
+// third gauges, a fuel-style bar with F, half and E marks for the second,
 // amber ticks and digits. The unlit scale shows its zones dimly, green then
 // amber then red at the top, like a redline.
 const LCD = {
@@ -575,7 +575,10 @@ export const register: Register = (on, options) => {
   })
 
   // The band above the prompt: context, activity, cost and turns on one line.
-  // The windows live in the pane's dials alone.
+  // The windows' readings live in the pane's dials alone. A burn-rate warning
+  // shows here for every window on course to run out, as its toast does,
+  // whether or not a slot shows that window: one off the dials still stops the
+  // session. Context is never warned; its fill is the ctx bar.
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
     const [u, t, m, ag, pt, warn, l] = await Promise.all([read($, usage), read($, turn), read($, mode), read($, agents), read($, ponytail), read($, warnings), read($, limits)])
     if (e.props.hasSurvey || !u) return next(e)
@@ -601,7 +604,7 @@ export const register: Register = (on, options) => {
             <Text color={pt === 'ultra' ? 'warning' : 'suggestion'} bold>ponytail {pt}</Text>
           </Button>
         )}
-        {Object.keys(warn).map(k => <Text color="error" bold>! {(l ?? []).find(x => x.kind === k)?.label ?? k}</Text>)}
+        {Object.keys(warn).map(k => <Text color="error" bold>! {(l ?? []).find(x => x.kind === k)?.label ?? k.replace(/_/g, ' ')}</Text>)}
       </Box>
     )
   })
@@ -614,7 +617,6 @@ export const register: Register = (on, options) => {
     const badge = BADGE[m]
     const centered = (text: string, w: number) => ' '.repeat(Math.max(0, Math.floor((w - text.length) / 2))) + text
     const all = dials(l ?? [], theme, slots, p)
-    const lcd = theme === 'eighties-digital-dash'
     const facts = ({ Box, Text, Button }: Pick<ReturnType<typeof $.ui.resolve>, 'Box' | 'Text' | 'Button'>) => [
       <Text>
         <Text dimColor>{'context  '}</Text>
@@ -687,53 +689,58 @@ export const register: Register = (on, options) => {
 
     if (e.surface === 'terminal' && theme === 'silver-bezel') {
       const { Box, Text, Button, Raster } = $.ui.resolve(e)
-      const [five, week, model] = all as [Dial, Dial, Dial]
+      const [main, second, third] = all as [Dial, Dial, Dial]
       const warned = (d: Dial) => d.limit !== undefined && d.limit.kind in warn
       const reset = (d: Dial) => (d.limit?.resetsAt ? `↻ ${until(d.limit.resetsAt, now)}` : d.limit ? '' : 'no reading')
       const empty = (d: Dial) => `! empty in ${until(new Date(warn[d.limit?.kind ?? ''] ?? now).toISOString(), now)}`
+      const pct = (d: Dial) => (d.limit ? `${d.limit.percent}%` : '––%')
       const silver = (text: string) => <Text color={SN.silver} wrap="truncate-end">{text}</Text>
       const big = (d: Dial) => (
         <Box flexDirection="column" width={MJ} flexShrink={0} alignItems="center">
           <Raster key={`dial-${d.label}`} columns={MJ} rows={MJ / 2} cells={d.cells(d.limit?.percent, warned(d))} />
-          <Text color="#ffffff" bold>{d.limit ? `${d.limit.percent}%` : '––%'}</Text>
+          <Text color="#ffffff" bold>{pct(d)}</Text>
           {silver(d.label)}
-          <Text dimColor wrap="truncate-end">{reset(d)}</Text>
+          {/* A blank line for a dial with no reset, so the big gauges keep one baseline. */}
+          <Text dimColor wrap="truncate-end">{reset(d) || ' '}</Text>
           {warned(d) ? <Text color="error" bold inverse wrap="truncate-end">{` ${empty(d)} `}</Text> : <Text> </Text>}
         </Box>
       )
       const running = ag.filter(a => a.status === 'running').length
-      // In the fuel, temp, oil and boost spots: weekly left, context, last turn's tools (full at 20), running agents (full at 5).
+      // In the fuel, temp, oil and boost spots: what is left of the second
+      // gauge (the weekly window by default), context, last turn's tools (full
+      // at 20), running agents (full at 5). The fuel gauge is too narrow for a
+      // label, so the second gauge's own label, percent and reset sit under the four.
       const small = (key: string, label: string, gauge: number | undefined, value: string, warnIt = false) => (
         <Box flexDirection="column" width={12} flexShrink={0} alignItems="center">
-          <Raster key={key} columns={MN} rows={MN / 2} cells={key === 'fuel' ? week.cells(gauge, warnIt) : minorCells(gauge, warnIt)} />
+          <Raster key={key} columns={MN} rows={MN / 2} cells={key === 'fuel' ? second.cells(gauge, warnIt) : minorCells(gauge, warnIt)} />
           <Text wrap="truncate-end"><Text color={SN.silver}>{label} </Text><Text color="#ffffff" bold>{value}</Text></Text>
         </Box>
       )
       return (
         <Box flexDirection="column">
           <Box flexDirection="row" columnGap={1} paddingX={1} backgroundColor={SN.panel} alignItems="flex-start">
-            {big(five)}
+            {big(main)}
             <Box flexDirection="column" width={25} flexShrink={0} alignItems="center">
               <Box flexDirection="row" columnGap={1}>
-                {small('fuel', 'WK LEFT', week.limit?.percent, week.limit ? `${100 - week.limit.percent}%` : '––', warned(week))}
-                {small('temp', 'CONTEXT', p, p === undefined ? '––' : `${p}%`)}
+                {small('fuel', 'LEFT', second.limit?.percent, second.limit ? `${100 - second.limit.percent}%` : '––%', warned(second))}
+                {small('temp', 'CONTEXT', p, p === undefined ? '––%' : `${p}%`)}
               </Box>
               <Box flexDirection="row" columnGap={1}>
                 {small('oil', 'TOOLS', Math.min(100, t.tools * 5), `${t.tools}`)}
                 {small('boost', 'AGENTS', Math.min(100, running * 20), `${running}`)}
               </Box>
-              <Text color={SN.silver} wrap="truncate-end">{`${week.label} ${week.limit ? `${week.limit.percent}%` : '––%'} ${reset(week)}`}</Text>
-              {warned(week) ? <Text color="error" bold inverse wrap="truncate-end">{` ${empty(week)} `}</Text> : <Text> </Text>}
+              <Text color={SN.silver} wrap="truncate-end">{[second.label, pct(second), reset(second)].filter(Boolean).join(' ')}</Text>
+              {warned(second) ? <Text color="error" bold inverse wrap="truncate-end">{` ${empty(second)} `}</Text> : <Text> </Text>}
             </Box>
-            {big(model)}
+            {big(third)}
           </Box>
         </Box>
       )
     }
 
-    if (e.surface === 'terminal' && lcd) {
+    if (e.surface === 'terminal' && theme === 'eighties-digital-dash') {
       const { Box, Text, Button, Raster } = $.ui.resolve(e)
-      const [five, week, model] = all as [Dial, Dial, Dial]
+      const [main, second, third] = all as [Dial, Dial, Dial]
       const warned = (d: Dial) => d.limit !== undefined && d.limit.kind in warn
       const reset = (d: Dial) => (d.limit?.resetsAt ? `↻ ${until(d.limit.resetsAt, now)}` : d.limit ? '' : 'no reading')
       const empty = (d: Dial) => `! empty in ${until(new Date(warn[d.limit?.kind ?? ''] ?? now).toISOString(), now)}`
@@ -749,14 +756,15 @@ export const register: Register = (on, options) => {
           <Raster key={`dial-${d.label}`} columns={SW} rows={SR} cells={d.cells(d.limit?.percent, warned(d))} />
           <Text color={LCD.digit} bold wrap="truncate-end">{d.limit ? `${d.limit.percent}%` : '––%'}</Text>
           <Text color={LCD.digit} wrap="truncate-end">{d.label}</Text>
-          <Text dimColor wrap="truncate-end">{reset(d)}</Text>
+          {/* A blank line for a dial with no reset, so the sweeps keep one baseline. */}
+          <Text dimColor wrap="truncate-end">{reset(d) || ' '}</Text>
           {warned(d) ? <Text color="error" bold inverse wrap="truncate-end">{` ${empty(d)} `}</Text> : <Text> </Text>}
         </Box>
       )
       return (
         <Box flexDirection="column">
           <Box flexDirection="row" columnGap={1} paddingX={1} backgroundColor={LCD.panel} alignItems="flex-start">
-            {gauge(five, true)}
+            {gauge(main, true)}
             <Box flexDirection="column" alignItems="center" width={36} flexShrink={0}>
               <Box flexDirection="row" columnGap={1}>
                 <Box flexDirection="column" width={14} flexShrink={0}>
@@ -765,7 +773,7 @@ export const register: Register = (on, options) => {
                   {amber(` ${u?.tokens !== undefined ? `${Math.round(u.tokens / 1000)}k` : '–'} tok`, true)}
                 </Box>
                 <Box flexDirection="column" alignItems="center" width={FW} flexShrink={0}>
-                  <Raster key="fuel" columns={FW} rows={FR} cells={week.cells(week.limit?.percent, warned(week))} />
+                  <Raster key="fuel" columns={FW} rows={FR} cells={second.cells(second.limit?.percent, warned(second))} />
                 </Box>
                 <Box flexDirection="column" width={14} flexShrink={0}>
                   {readout('COST', u?.usd !== undefined ? `$${u.usd.toFixed(2)}` : '–')}
@@ -773,10 +781,12 @@ export const register: Register = (on, options) => {
                   {amber(` ${t.count}  ${t.count ? seconds(t.lastMs) : '–'}`, true)}
                 </Box>
               </Box>
-              {warned(week) ? <Text color="error" bold inverse>{` RESERVE ${empty(week)} `}</Text> : amber(`${week.label.toUpperCase()} ${week.limit ? `${week.limit.percent}%` : '––%'}`, true)}
-              <Text dimColor>{reset(week)}</Text>
+              {/* The second gauge's label and percent always show; a warned one adds the RESERVE lamp. */}
+              {amber(`${second.label.toUpperCase()} ${second.limit ? `${second.limit.percent}%` : '––%'}`, true)}
+              <Text dimColor wrap="truncate-end">{reset(second) || ' '}</Text>
+              {warned(second) ? <Text color="error" bold inverse wrap="truncate-end">{` RESERVE ${empty(second)} `}</Text> : <Text> </Text>}
             </Box>
-            {gauge(model, false)}
+            {gauge(third, false)}
           </Box>
         </Box>
       )
@@ -786,14 +796,14 @@ export const register: Register = (on, options) => {
       const { Box, Text, Button, Raster } = $.ui.resolve(e)
       return (
         <Box flexDirection="column">
-          <Box flexDirection="row" flexWrap="wrap" columnGap={2} alignItems="flex-end" paddingX={lcd ? 1 : 0} backgroundColor={lcd ? LCD.panel : undefined}>
+          <Box flexDirection="row" flexWrap="wrap" columnGap={2} alignItems="flex-end">
             {all.map((d, i) => (
               <Box flexDirection="column" width={d.w}>
                 <Raster key={`dial-${i}`} columns={d.w} rows={d.rows} cells={d.cells(d.limit?.percent, d.limit !== undefined && d.limit.kind in warn)} />
-                <Text color={lcd ? LCD.digit : d.limit ? zone(d.limit.percent) : 'inactive'} bold>
+                <Text color={d.limit ? zone(d.limit.percent) : 'inactive'} bold>
                   {centered(d.limit ? `${d.limit.percent}%` : '––%', d.w)}
                 </Text>
-                <Text color={lcd ? LCD.digit : undefined} dimColor={!lcd}>{centered(d.label, d.w)}</Text>
+                <Text dimColor>{centered(d.label, d.w)}</Text>
                 <Text dimColor>{centered(d.limit?.resetsAt ? `↻ ${until(d.limit.resetsAt, now)}` : d.limit ? '' : 'no reading', d.w)}</Text>
                 {/* Always present so the dials sit on one baseline. */}
                 <Text color="error" bold>{d.limit && d.limit.kind in warn ? centered(`! empty in ${until(new Date(warn[d.limit.kind] ?? now).toISOString(), now)}`, d.w) : ' '}</Text>

@@ -30,7 +30,7 @@ Answer `y` to add the marketplace, then pick a scope. The pane opens on its own 
 ## What you see
 
 - **The pane**: three gauges beside the chat, for the 5-hour window, the weekly window and the weekly per-model window (Fable, Opus, whichever your plan scopes), each with its reset time. The per-model gauge has a reading only when **Read per-model limits** is on. Meters fill green, then yellow past 50%, then red past 80%.
-- **The band**: one line above the prompt with context usage, an activity badge, session cost, turn stats, running subagents, and the [ponytail](https://github.com/DietrichGebert/ponytail) level when that plugin is active for the project. The engine's `[-]` collapses it.
+- **The band**: one line above the prompt with context usage, an activity badge, session cost, turn stats, running subagents, the [ponytail](https://github.com/DietrichGebert/ponytail) level when that plugin is active for the project, and `! <window>` for each window on course to run out before it resets, whether or not one of the three gauges shows it. The engine's `[-]` collapses it.
 - **Warnings**: a window on course to run out before it resets turns red and says when, and a toast warns at 80% and 90% context.
 
 <p align="center">
@@ -100,7 +100,7 @@ Pick a cluster under `/config`, row **Gauge cluster**. Every one shows the three
 <details>
 <summary>How <code>classic</code> reads your windows</summary>
 
-Three equal half-dials with needles: from left to right the 5-hour window, the weekly window and the model window. Each arc lights green, then yellow past 50% and red past 80%, as far as its reading, with the percent, label and reset time under the dial. A warned dial lights a red hub and prints the time its window runs out.
+Three equal half-dials with needles: from left to right the main, second and third gauges (by default the 5-hour window, the weekly window and the model window). Each arc lights green, then yellow past 50% and red past 80%, as far as its reading, with the percent, label and reset time under the dial. A warned dial lights a red hub and prints the time its window runs out.
 
 </details>
 
@@ -193,7 +193,7 @@ Three segmented level columns side by side, filling from the bottom like a level
 <details>
 <summary>How <code>eighties-digital-dash</code> reads your windows</summary>
 
-Laid out like a late-1980s American sports car LCD dash on a black panel. The 5-hour window is the speedometer sweep on the left, the model window the tachometer arch on the right, the weekly window the fuel column in the centre between amber context and cost readouts. Unlit segments show dimly, so you can see the scale turn amber then red toward the top.
+Laid out like a late-1980s American sports car LCD dash on a black panel. The main gauge (the 5-hour window by default) is the speedometer sweep on the left and the third (the model window by default) the tachometer arch on the right. The second gauge (the weekly window by default) is the fuel column in the centre between amber context and cost readouts, with its label, percent and reset under it; a warned second gauge adds a red RESERVE lamp with the time it runs out. Unlit segments show dimly, so you can see the scale turn amber then red toward the top.
 
 </details>
 
@@ -206,7 +206,7 @@ Laid out like a late-1980s American sports car LCD dash on a black panel. The 5-
 <details>
 <summary>How <code>silver-bezel</code> reads your windows</summary>
 
-After an early-2000s supercharged muscle car cluster: white-faced round gauges in silver bezels with red needles and redline arcs. The 5-hour window is the big gauge on the left and the model window the one on the right. Four small gauges sit between them: WK LEFT (the weekly window left, in the fuel spot), CONTEXT (temp), TOOLS (oil, the last turn's tool calls, full at 20) and AGENTS (boost, running subagents, full at 5).
+After an early-2000s supercharged muscle car cluster: white-faced round gauges in silver bezels with red needles and redline arcs. The main gauge (the 5-hour window by default) is the big gauge on the left and the third (the model window by default) the one on the right. Four small gauges sit between them: LEFT (what is left of the second gauge, the weekly window by default, in the fuel spot, so its needle drops as the window fills), CONTEXT (temp), TOOLS (oil, the last turn's tool calls, full at 20) and AGENTS (boost, running subagents, full at 5). Under them, the second gauge's label, percent used and reset.
 
 </details>
 
