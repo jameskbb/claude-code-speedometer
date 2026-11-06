@@ -1,6 +1,6 @@
 import { expect, mock, test } from 'claude-code/testing'
 
-import { AR, AW, leftArcCells, revCells, rightArcCells, RW, theme } from '../hooks/themes/hexagon-tft'
+import { AR, AW, leftArcCells, mode, revCells, rightArcCells, RW, theme } from '../hooks/themes/hexagon-tft'
 
 const PANE = {
   plugin: 'speedometer',
@@ -26,6 +26,10 @@ test('each hexagon-tft gauge fills exactly its grid', () => {
   }
   const [five, week, model] = theme.gauges({ label: '5-hour' }, { label: 'weekly' }, { label: 'Fable weekly' })
   for (const d of [five, week, model]) expect(size(d.cells(50, true))).toBe(d.w * d.rows * 12)
+})
+
+test('the hexagon-tft drive modes are road, sport and track', () => {
+  expect([0, 49, 50, 79, 80, 100].map(p => mode(p).name)).toEqual(['ROAD', 'ROAD', 'SPORT', 'SPORT', 'TRACK', 'TRACK'])
 })
 
 test('a warned hexagon-tft gauge paints differently', () => {

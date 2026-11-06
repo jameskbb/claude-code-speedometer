@@ -209,13 +209,13 @@ After an early-2000s supercharged muscle car cluster: white-faced round gauges i
 **`hexagon-tft`**: an all-digital TFT screen round one big rev display.
 
 <p align="center">
-  <img src="docs/images/cluster-hexagon-tft.png" alt="The hexagon-tft cluster: on a black screen, a round rev display for the 5-hour window at 62% with a yellow arc, 62 in white digits inside a hexagon, a red hexagon warning lamp and an empty-in warning, slim segmented arcs either side for the weekly window at 37% in green and the Fable weekly window at 84% in orange, hexagon-framed CTX 42% 84k, COST $1.23, TOOLS 7 and AGENTS 1 readouts, and a strada, sport, corsa row with SPORT lit" width="100%">
+  <img src="docs/images/cluster-hexagon-tft.png" alt="The hexagon-tft cluster: on a black screen, a round rev display for the 5-hour window at 62% with a yellow arc, 62 in white digits inside a hexagon, a red hexagon warning lamp and an empty-in warning, slim segmented arcs either side for the weekly window at 37% in green and the Fable weekly window at 84% in orange, hexagon-framed CTX 42% 84k, COST $1.23, TOOLS 7 and AGENTS 1 readouts, and a road, sport, track row with SPORT lit" width="100%">
 </p>
 
 <details>
 <summary>How <code>hexagon-tft</code> reads your windows</summary>
 
-After a modern supercar's all-digital TFT screen: black, with one big round rev display in the middle and the reading in digital numerals inside a hexagon. The 5-hour window is the rev display; its lit arc sweeps 270 degrees and turns from green to yellow to orange as the window fills, with the last fifth of the scale tinted red. The weekly window is the slim segmented arc bracketing it on the left and the model window the matching arc on the right, with their readings beside them. Readouts framed as stretched hexagons carry CTX and COST on the left, TOOLS and AGENTS on the right. A drive-mode row under the dial (strada, sport, corsa) lights the mode the 5-hour window has reached.
+After a modern supercar's all-digital TFT screen: black, with one big round rev display in the middle and the reading in digital numerals inside a hexagon. The 5-hour window is the rev display; its lit arc sweeps 270 degrees and turns from green to yellow to orange as the window fills, with the last fifth of the scale tinted red. The weekly window is the slim segmented arc bracketing it on the left and the model window the matching arc on the right, with their readings beside them. Readouts framed as stretched hexagons carry CTX and COST on the left, TOOLS and AGENTS on the right. A drive-mode row under the dial (road, sport, track) lights the mode the 5-hour window has reached.
 
 </details>
 

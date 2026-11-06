@@ -9,10 +9,10 @@ import type { Dial, ThemeCtx, ThemeDef } from './kit'
 
 const HX = {
   bg: '#000000', screen: 0x000000, unlit: 0x262626, redline: 0x4a1010, ring: 0x3c3c3c, digit: 0xf4f4f4, dim: 0x5a5a5a,
-  strada: 0x8be22b, sport: 0xffd400, corsa: 0xff7a00, red: 0xff2a2a, white: '#f4f4f4', grey: '#8a8a8a',
+  road: 0x8be22b, sport: 0xffd400, track: 0xff7a00, red: 0xff2a2a, white: '#f4f4f4', grey: '#8a8a8a',
 }
 // The drive mode a percent puts the screen in: its name and colour.
-export const mode = (p: number) => (p >= 80 ? { name: 'CORSA', px: HX.corsa } : p >= 50 ? { name: 'SPORT', px: HX.sport } : { name: 'STRADA', px: HX.strada })
+export const mode = (p: number) => (p >= 80 ? { name: 'TRACK', px: HX.track } : p >= 50 ? { name: 'SPORT', px: HX.sport } : { name: 'ROAD', px: HX.road })
 const hex = (n: number) => `#${n.toString(16).padStart(6, '0')}`
 
 // A 5 by 7 digit font for the readout in the middle of the rev display.
@@ -188,7 +188,7 @@ export const theme: ThemeDef = {
             {warning(five)}
             {/* The drive-mode row: the 5-hour window picks the lit one. */}
             <Box flexDirection="row" columnGap={1}>
-              {['STRADA', 'SPORT', 'CORSA'].map((m, i) => (
+              {['ROAD', 'SPORT', 'TRACK'].map((m, i) => (
                 <Text color={m === now ? hex(mode([0, 50, 80][i]!).px) : HX.grey} bold={m === now} inverse={m === now}>{m === now ? m : m.toLowerCase()}</Text>
               ))}
             </Box>
