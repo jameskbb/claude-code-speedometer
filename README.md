@@ -62,6 +62,10 @@ It reads the session's own figures through the engine: context fill, token count
 
 One key, `history`: for each rate-limit window, up to 300 samples of a time and a percent used, none older than 24 hours. It is written at most once a minute: from the 5-hour and weekly figures Claude Code reports, or, with **Read per-model limits** on, each time the usage endpoint answers. It is read back to work out the [burn-rate warnings](#burn-rate-warnings). Nothing else is stored.
 
+### Its own settings
+
+It reads its own options from your Claude Code settings. If the saved gauge cluster uses a theme's old name, it saves it once under the new name at session start. It reads and writes no other settings.
+
 ### Environment variables
 
 `HOME`, or `USERPROFILE` where `HOME` is unset (Windows), and only to find the ponytail files below. No other variable is read, and none is written.

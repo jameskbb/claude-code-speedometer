@@ -47,9 +47,9 @@ The plugin keeps one value, `history`, in the private key-value store Claude
 Code gives each plugin. For each rate-limit window it holds up to 300
 readings, each a time and a percent used, and drops any reading older than
 24 hours. It is used only to project the
-[burn-rate warnings](README.md#burn-rate-warnings). The readings come from
-the usage endpoint described below, so while that option is off nothing is
-written to the store. The store holds no tokens, prompts, project names or
+[burn-rate warnings](README.md#burn-rate-warnings). A reading is added at
+most once a minute: from the 5-hour and weekly figures Claude Code itself
+reports, or, with the usage endpoint option on, from the endpoint's answer. The store holds no tokens, prompts, project names or
 account details.
 
 ### Files of the optional ponytail plugin
