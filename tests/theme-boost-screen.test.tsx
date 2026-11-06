@@ -1,6 +1,6 @@
 import { expect, mock, test } from 'claude-code/testing'
 
-import { BARW, barCells, BROWS, GW, roundCells } from '../hooks/themes/tuner-mfd'
+import { BARW, barCells, BROWS, GW, roundCells } from '../hooks/themes/boost-screen'
 
 const PANE = {
   plugin: 'speedometer',
@@ -36,7 +36,7 @@ test('a bar graph fills exactly its grid', () => {
   }
 })
 
-test('the tuner-mfd theme draws the pane too', { options: { theme: 'tuner-mfd' } }, async ($, on) => {
+test('the boost-screen theme draws the pane too', { options: { theme: 'boost-screen' } }, async ($, on) => {
   mock.clock(on)
   on('session.model', () => ({ value: 'claude-fable-5-1' }))
   on('session.root', () => ({ value: '/proj' }))

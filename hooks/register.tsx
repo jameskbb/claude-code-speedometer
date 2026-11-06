@@ -110,7 +110,7 @@ export function barCells(percent: number | undefined, warn = false): string {
   return encode(px, pw, ph)
 }
 
-// The white-face-muscle cluster, after an early-2000s muscle car: white-faced
+// The silver-bezel cluster, after an early-2000s muscle car: white-faced
 // round gauges in silver bezels, black ticks, a red redline arc and red
 // needle; a big tachometer and speedometer either side of four small
 // 90-degree gauges. No badge: the centre stays no taller than the big gauges.
@@ -172,23 +172,27 @@ export const minorCells = (p: number | undefined, warn = false) => faceCells(MN,
 
 // The built-in clusters, then each theme file's under hooks/themes/.
 // `minimal` draws no gauges: only the session's facts (context, cost, model, turns, agents).
-export const THEMES: readonly string[] = ['eighties-digital-dash', 'white-face-muscle', 'classic', 'minimal', ...EXTRA.map(t => t.id)]
+export const THEMES: readonly string[] = ['eighties-digital-dash', 'silver-bezel', 'classic', 'minimal', ...EXTRA.map(t => t.id)]
 export type Theme = string
 // Old theme ids, renamed to generic ones, so a /config value saved under one
-// still picks the same cluster.
+// still picks the same cluster. Each points straight at a current id, never at
+// another alias: the 0.5.x brand names first, then the 0.6.0 names renamed again.
 export const THEME_ALIASES: Readonly<Record<string, Theme>> = {
   'corvette-c4': 'eighties-digital-dash',
-  'mustang-terminator': 'white-face-muscle',
-  'lamborghini-huracan': 'hexagon-tft',
+  'mustang-terminator': 'silver-bezel',
+  'lamborghini-huracan': 'hex-supercar',
   'porsche-911': 'five-dial-sports',
   'ferrari-f40': 'spartan-supercar',
   'tron-lightcycle': 'neon-grid',
   'f1-wheel': 'race-wheel',
-  'skyline-r34': 'tuner-mfd',
+  'skyline-r34': 'boost-screen',
   'knight-rider': 'scanner-dash',
   'bel-air-1957': 'fifties-chrome',
   delorean: 'chrono-console',
   'wrx-gc8': 'nineties-rally',
+  'white-face-muscle': 'silver-bezel',
+  'hexagon-tft': 'hex-supercar',
+  'tuner-mfd': 'boost-screen',
 }
 // The theme a /config value picks: a current id, an old id's new one, else classic.
 export function resolveTheme(value: unknown): Theme {
@@ -216,7 +220,7 @@ async function adoptRenamedTheme($: EngineOf): Promise<Theme | undefined> {
 }
 // The README category of each theme (Plain is 'classic'): the built-ins here,
 // every other theme from its ThemeDef.
-const BUILTIN_CATEGORY: Record<string, Category> = { 'eighties-digital-dash': 'vehicles', 'white-face-muscle': 'vehicles', classic: 'classic', minimal: 'classic' }
+const BUILTIN_CATEGORY: Record<string, Category> = { 'eighties-digital-dash': 'vehicles', 'silver-bezel': 'vehicles', classic: 'classic', minimal: 'classic' }
 export function categoryOf(id: Theme): Category {
   const c = BUILTIN_CATEGORY[id] ?? EXTRA.find(t => t.id === id)?.category
   if (!c) throw new Error(`no category for theme ${id}`)
@@ -238,7 +242,7 @@ export function dials(all: SpeedoLimit[], theme: Theme): Dial[] {
   if (extra) return extra.gauges(five, week, model)
   return theme === 'eighties-digital-dash' ? [{ ...five, ...sweep }, { ...week, ...fuel }, { ...model, ...tach }]
     // The fuel gauge reads what is left, so its needle drops as the week burns.
-    : theme === 'white-face-muscle' ? [{ ...five, ...major }, { ...week, w: MN, rows: MN / 2, cells: (p, warn) => minorCells(p === undefined ? undefined : 100 - p, warn) }, { ...model, ...major }]
+    : theme === 'silver-bezel' ? [{ ...five, ...major }, { ...week, w: MN, rows: MN / 2, cells: (p, warn) => minorCells(p === undefined ? undefined : 100 - p, warn) }, { ...model, ...major }]
     : [{ ...five, ...arc(DW) }, { ...week, ...arc(DW) }, { ...model, ...arc(DW) }]
 }
 
@@ -652,7 +656,7 @@ export const register: Register = (on, options) => {
       return extra.draw(ctx) as ReturnType<typeof facts>[number]
     }
 
-    if (e.surface === 'terminal' && theme === 'white-face-muscle') {
+    if (e.surface === 'terminal' && theme === 'silver-bezel') {
       const { Box, Text, Button, Raster } = $.ui.resolve(e)
       const [five, week, model] = all as [Dial, Dial, Dial]
       const warned = (d: Dial) => d.limit !== undefined && d.limit.kind in warn

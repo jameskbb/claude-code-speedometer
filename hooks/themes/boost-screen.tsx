@@ -1,4 +1,4 @@
-// The tuner-mfd cluster, after a late-1990s Japanese turbo coupe's centre multifunction
+// The boost-screen cluster, after a late-1990s Japanese turbo coupe's centre multifunction
 // display: a dark navy screen, a strip of page tabs across the top, a round
 // segmented boost gauge with its reading in digits, and segmented bar graphs
 // lit blue-white with an amber top end, a digital readout beside each.
@@ -108,7 +108,7 @@ const GRW = 19
 const BRW = 13
 
 export const theme: ThemeDef = {
-  id: 'tuner-mfd',
+  id: 'boost-screen',
   category: 'vehicles',
   gauges: (five, week, model) => [
     { ...five, w: GW, rows: GW / 2, cells: roundCells },

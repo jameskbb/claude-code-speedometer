@@ -9,7 +9,10 @@ const PANE = {
   props: { title: 'Speedometer', isFocused: false, bodyColumns: 90, placement: 'dock', scroll: { offset: 0, bodyRows: 40 }, view: {} },
 } as const
 
-const OLD = ['corvette-c4', 'mustang-terminator', 'lamborghini-huracan', 'porsche-911', 'ferrari-f40', 'tron-lightcycle', 'f1-wheel', 'skyline-r34', 'knight-rider', 'bel-air-1957', 'delorean', 'wrx-gc8']
+// The 0.5.x brand-named ids, and the 0.6.0 ids renamed again.
+const V05 = ['corvette-c4', 'mustang-terminator', 'lamborghini-huracan', 'porsche-911', 'ferrari-f40', 'tron-lightcycle', 'f1-wheel', 'skyline-r34', 'knight-rider', 'bel-air-1957', 'delorean', 'wrx-gc8']
+const V06 = ['white-face-muscle', 'hexagon-tft', 'tuner-mfd']
+const OLD = [...V05, ...V06]
 
 test('every old theme id still resolves to its renamed cluster', () => {
   expect(Object.keys(THEME_ALIASES).sort()).toEqual([...OLD].sort())
@@ -20,6 +23,19 @@ test('every old theme id still resolves to its renamed cluster', () => {
   }
   expect(resolveTheme('corvette-c4')).toBe('eighties-digital-dash')
   expect(resolveTheme('tron-lightcycle')).toBe('neon-grid')
+})
+
+test('both generations of old ids land on the final ids, with no chains', () => {
+  expect(resolveTheme('mustang-terminator')).toBe('silver-bezel')
+  expect(resolveTheme('white-face-muscle')).toBe('silver-bezel')
+  expect(resolveTheme('lamborghini-huracan')).toBe('hex-supercar')
+  expect(resolveTheme('hexagon-tft')).toBe('hex-supercar')
+  expect(resolveTheme('skyline-r34')).toBe('boost-screen')
+  expect(resolveTheme('tuner-mfd')).toBe('boost-screen')
+  for (const target of Object.values(THEME_ALIASES)) {
+    expect(THEMES).toContain(target)
+    expect(THEME_ALIASES[target]).toBeUndefined()
+  }
 })
 
 test('current ids resolve to themselves and anything else to classic', () => {

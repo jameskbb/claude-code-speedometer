@@ -1,4 +1,4 @@
-// The hexagon-tft cluster, after a modern supercar's all-digital TFT: on a
+// The hex-supercar cluster, after a modern supercar's all-digital TFT: on a
 // black screen, one big round rev display in the middle with a lit arc
 // sweeping clockwise round it and the digital readout in a hexagon inside,
 // slim segmented arcs bracketing it either side, readouts framed as stretched
@@ -140,7 +140,7 @@ export const leftArcCells = (percent: number | undefined, warn = false) => sideA
 export const rightArcCells = (percent: number | undefined, warn = false) => sideArc(percent, warn, true)
 
 export const theme: ThemeDef = {
-  id: 'hexagon-tft',
+  id: 'hex-supercar',
   category: 'vehicles',
   gauges: (five, week, model) => [
     { ...five, w: RW, rows: RW / 2, cells: revCells },

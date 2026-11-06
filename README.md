@@ -193,27 +193,27 @@ Laid out like a late-1980s American sports car LCD dash on a black panel. The 5-
 
 </details>
 
-**`white-face-muscle`**: an early-2000s muscle car cluster: white faces in silver bezels.
+**`silver-bezel`**: an early-2000s muscle car cluster: white faces in silver bezels.
 
 <p align="center">
-  <img src="docs/images/cluster-white-face-muscle.png" alt="The white-face-muscle cluster: white-faced round gauges in silver bezels, the 5-hour gauge at 62% with an empty-in warning on the left, four small gauges for WK LEFT 63%, CONTEXT 42%, TOOLS 7 and AGENTS 1 in the middle, and the Fable weekly gauge at 84% on the right" width="100%">
+  <img src="docs/images/cluster-silver-bezel.png" alt="The silver-bezel cluster: white-faced round gauges in silver bezels, the 5-hour gauge at 62% with an empty-in warning on the left, four small gauges for WK LEFT 63%, CONTEXT 42%, TOOLS 7 and AGENTS 1 in the middle, and the Fable weekly gauge at 84% on the right" width="100%">
 </p>
 
 <details>
-<summary>How <code>white-face-muscle</code> reads your windows</summary>
+<summary>How <code>silver-bezel</code> reads your windows</summary>
 
 After an early-2000s supercharged muscle car cluster: white-faced round gauges in silver bezels with red needles and redline arcs. The 5-hour window is the big gauge on the left and the model window the one on the right. Four small gauges sit between them: WK LEFT (the weekly window left, in the fuel spot), CONTEXT (temp), TOOLS (oil, the last turn's tool calls, full at 20) and AGENTS (boost, running subagents, full at 5).
 
 </details>
 
-**`hexagon-tft`**: an all-digital TFT screen round one big rev display.
+**`hex-supercar`**: an all-digital TFT screen round one big rev display.
 
 <p align="center">
-  <img src="docs/images/cluster-hexagon-tft.png" alt="The hexagon-tft cluster: on a black screen, a round rev display for the 5-hour window at 62% with a yellow arc, 62 in white digits inside a hexagon, a red hexagon warning lamp and an empty-in warning, slim segmented arcs either side for the weekly window at 37% in green and the Fable weekly window at 84% in orange, hexagon-framed CTX 42% 84k, COST $1.23, TOOLS 7 and AGENTS 1 readouts, and a road, sport, track row with SPORT lit" width="100%">
+  <img src="docs/images/cluster-hex-supercar.png" alt="The hex-supercar cluster: on a black screen, a round rev display for the 5-hour window at 62% with a yellow arc, 62 in white digits inside a hexagon, a red hexagon warning lamp and an empty-in warning, slim segmented arcs either side for the weekly window at 37% in green and the Fable weekly window at 84% in orange, hexagon-framed CTX 42% 84k, COST $1.23, TOOLS 7 and AGENTS 1 readouts, and a road, sport, track row with SPORT lit" width="100%">
 </p>
 
 <details>
-<summary>How <code>hexagon-tft</code> reads your windows</summary>
+<summary>How <code>hex-supercar</code> reads your windows</summary>
 
 After a modern supercar's all-digital TFT screen: black, with one big round rev display in the middle and the reading in digital numerals inside a hexagon. The 5-hour window is the rev display; its lit arc sweeps 270 degrees and turns from green to yellow to orange as the window fills, with the last fifth of the scale tinted red. The weekly window is the slim segmented arc bracketing it on the left and the model window the matching arc on the right, with their readings beside them. Readouts framed as stretched hexagons carry CTX and COST on the left, TOOLS and AGENTS on the right. A drive-mode row under the dial (road, sport, track) lights the mode the 5-hour window has reached.
 
@@ -271,14 +271,14 @@ After a modern single-seater racing steering wheel seen face on: a carbon-fibre 
 
 </details>
 
-**`tuner-mfd`**: a navy multifunction screen of segmented graphs.
+**`boost-screen`**: a navy multifunction screen of segmented graphs.
 
 <p align="center">
-  <img src="docs/images/cluster-tuner-mfd.png" alt="The tuner-mfd cluster: a dark navy multifunction screen with a BOOST, OIL, INTAKE, THROTTLE, TIMER tab strip and a LAP 23s timer, a round segmented boost gauge for the 5-hour window at 62% with 62 in white digits, a red warning lamp and an empty-in warning on the left beside TOOLS 7 and AGENTS 1, and blue-white segmented bar graphs with amber top ends on the right for OIL TEMP (weekly) at 37%, INTAKE TEMP (Fable weekly) at 84% and THROTTLE (context) at 42% with 84k, each with a digital readout beside it" width="100%">
+  <img src="docs/images/cluster-boost-screen.png" alt="The boost-screen cluster: a dark navy multifunction screen with a BOOST, OIL, INTAKE, THROTTLE, TIMER tab strip and a LAP 23s timer, a round segmented boost gauge for the 5-hour window at 62% with 62 in white digits, a red warning lamp and an empty-in warning on the left beside TOOLS 7 and AGENTS 1, and blue-white segmented bar graphs with amber top ends on the right for OIL TEMP (weekly) at 37%, INTAKE TEMP (Fable weekly) at 84% and THROTTLE (context) at 42% with 84k, each with a digital readout beside it" width="100%">
 </p>
 
 <details>
-<summary>How <code>tuner-mfd</code> reads your windows</summary>
+<summary>How <code>boost-screen</code> reads your windows</summary>
 
 After a late-1990s Japanese turbo coupe's centre multifunction display: a dark navy screen with a strip of page tabs across the top, segmented graphs lit blue-white with an amber top end, and a digital readout beside each. The 5-hour window is the round boost gauge on the left, its reading in digits in the middle and its percent, reset and running TOOLS and AGENTS counts beside it. On the right, the weekly window is the OIL TEMP bar graph, the model window the INTAKE TEMP bar graph, and context the THROTTLE bar graph under them, each with its percent and label beside the bar. The last turn's time reads as a LAP timer in the tab strip. A warned window lights a red lamp: in the open bottom of the boost gauge, or at the end of its bar.
 
