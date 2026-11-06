@@ -148,7 +148,7 @@ export const placeholder = (id: string, category: Category): ThemeDef => ({
             <Raster key={`dial-${i}`} columns={d.w} rows={d.rows} cells={d.cells(d.limit?.percent, warned(d))} />
             <Text color={d.limit ? zone(d.limit.percent) : 'inactive'} bold>{d.limit ? `${d.limit.percent}%` : '––%'}</Text>
             <Text dimColor wrap="truncate-end">{d.label}</Text>
-            <Text dimColor wrap="truncate-end">{reset(d)}</Text>
+            <Text dimColor wrap="truncate-end">{reset(d) || ' '}</Text>
             <Text color="error" bold wrap="truncate-end">{warned(d) ? empty(d) : ' '}</Text>
           </Box>
         ))}

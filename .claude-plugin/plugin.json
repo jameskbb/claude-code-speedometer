@@ -48,7 +48,7 @@
     "gauge1": {
       "type": "string",
       "title": "Main gauge",
-      "description": "What the main gauge shows. auto: the 5-hour window, or the weekly window on a plan with no 5-hour limit. Or pick one: five-hour, weekly, model-weekly, context (context window fill).",
+      "description": "What the main gauge shows (not used by minimal). auto: the 5-hour window, or the weekly window on a plan with no 5-hour limit. Or pick one: five-hour, weekly, model-weekly, context (context window fill). An auto slot skips a source another slot is set to.",
       "options": [
         "auto",
         "five-hour",
@@ -61,7 +61,7 @@
     "gauge2": {
       "type": "string",
       "title": "Second gauge",
-      "description": "What the second gauge shows. auto: the weekly window, or context fill on a plan with no 5-hour limit. Or pick one: five-hour, weekly, model-weekly, context (context window fill).",
+      "description": "What the second gauge shows. auto: the weekly window, or context fill on a plan with no 5-hour limit. Or pick one: five-hour, weekly, model-weekly, context (context window fill). An auto slot skips a source another slot is set to.",
       "options": [
         "auto",
         "five-hour",
@@ -74,7 +74,7 @@
     "gauge3": {
       "type": "string",
       "title": "Third gauge",
-      "description": "What the third gauge shows. auto: the per-model weekly window (needs Read per-model limits). Or pick one: five-hour, weekly, model-weekly, context (context window fill).",
+      "description": "What the third gauge shows. auto: the per-model weekly window (needs Read per-model limits). Or pick one: five-hour, weekly, model-weekly, context (context window fill). An auto slot skips a source another slot is set to.",
       "options": [
         "auto",
         "five-hour",

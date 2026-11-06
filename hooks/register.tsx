@@ -235,12 +235,16 @@ export type Slot = Source | 'auto'
 export const slotOf = (v: unknown): Slot => (typeof v === 'string' && (SOURCES as readonly string[]).includes(v) ? (v as Source) : 'auto')
 
 // What each slot shows. `auto` follows the plan: 5-hour, weekly, model weekly;
-// on a plan that reports a weekly window but no 5-hour one, weekly moves to
-// the main gauge and context fill takes the second.
-export function sources(slots: readonly [Slot, Slot, Slot], all: SpeedoLimit[]): [Source, Source, Source] {
-  const noFive = !all.some(r => r.kind === 'session') && all.some(r => r.kind === 'weekly_all')
-  const auto: [Source, Source, Source] = noFive ? ['weekly', 'context', 'model-weekly'] : ['five-hour', 'weekly', 'model-weekly']
-  return slots.map((s, i) => (s === 'auto' ? auto[i] : s)) as [Source, Source, Source]
+// on a plan that reports a weekly window but has never reported a 5-hour one
+// this session, weekly moves to the main gauge and context fill takes the
+// second. `sawFive` makes that choice stick, so a reading that happens to lack
+// the 5-hour window never reshuffles the gauges. Auto slots skip any source a
+// set slot already shows.
+export function sources(slots: readonly [Slot, Slot, Slot], all: SpeedoLimit[], sawFive = false): [Source, Source, Source] {
+  const noFive = !sawFive && !all.some(r => r.kind === 'session') && all.some(r => r.kind === 'weekly_all')
+  const order: Source[] = noFive ? ['weekly', 'context', 'model-weekly', 'five-hour'] : ['five-hour', 'weekly', 'model-weekly', 'context']
+  const free = order.filter(o => !slots.includes(o))
+  return slots.map(s => (s === 'auto' ? (free.shift() ?? 'context') : s)) as [Source, Source, Source]
 }
 
 // One slot's dial, without its gauge shape: the source's label and reading.
@@ -254,8 +258,8 @@ export function bind(source: Source, all: SpeedoLimit[], context?: number): Omit
 }
 
 // The three dials, in slot order, shaped by the theme.
-export function dials(all: SpeedoLimit[], theme: Theme, slots: readonly [Slot, Slot, Slot] = ['auto', 'auto', 'auto'], context?: number): Dial[] {
-  const [main, second, third] = sources(slots, all).map(s => bind(s, all, context)) as [Omit<Dial, keyof Gauge>, Omit<Dial, keyof Gauge>, Omit<Dial, keyof Gauge>]
+export function dials(all: SpeedoLimit[], theme: Theme, slots: readonly [Slot, Slot, Slot] = ['auto', 'auto', 'auto'], context?: number, sawFive = false): Dial[] {
+  const [main, second, third] = sources(slots, all, sawFive).map(s => bind(s, all, context)) as [Omit<Dial, keyof Gauge>, Omit<Dial, keyof Gauge>, Omit<Dial, keyof Gauge>]
   const extra = EXTRA.find(t => t.id === theme)
   if (extra) return extra.gauges(main, second, third)
   return theme === 'eighties-digital-dash' ? [{ ...main, ...sweep }, { ...second, ...fuel }, { ...third, ...tach }]
@@ -471,6 +475,8 @@ export const register: Register = (on, options) => {
   // Off by default: the usage endpoint is asked only when the person turns this on.
   const usageEndpoint = options.usageEndpoint === true
   const slots = [slotOf(options.gauge1), slotOf(options.gauge2), slotOf(options.gauge3)] as const
+  // Set once the plan has reported a 5-hour window this session; see sources().
+  let sawFive = false
   let startedAt = 0
   let tools = 0
 
@@ -616,7 +622,8 @@ export const register: Register = (on, options) => {
     const window = u?.window ?? 200_000
     const badge = BADGE[m]
     const centered = (text: string, w: number) => ' '.repeat(Math.max(0, Math.floor((w - text.length) / 2))) + text
-    const all = dials(l ?? [], theme, slots, p)
+    if ((l ?? []).some(r => r.kind === 'session')) sawFive = true
+    const all = dials(l ?? [], theme, slots, p, sawFive)
     const facts = ({ Box, Text, Button }: Pick<ReturnType<typeof $.ui.resolve>, 'Box' | 'Text' | 'Button'>) => [
       <Text>
         <Text dimColor>{'context  '}</Text>
@@ -803,7 +810,7 @@ export const register: Register = (on, options) => {
                   {centered(d.limit ? `${d.limit.percent}%` : '––%', d.w)}
                 </Text>
                 <Text dimColor>{centered(d.label, d.w)}</Text>
-                <Text dimColor>{centered(d.limit?.resetsAt ? `↻ ${until(d.limit.resetsAt, now)}` : d.limit ? '' : 'no reading', d.w)}</Text>
+                <Text dimColor>{centered(d.limit?.resetsAt ? `↻ ${until(d.limit.resetsAt, now)}` : d.limit ? '' : 'no reading', d.w) || ' '}</Text>
                 {/* Always present so the dials sit on one baseline. */}
                 <Text color="error" bold>{d.limit && d.limit.kind in warn ? centered(`! empty in ${until(new Date(warn[d.limit.kind] ?? now).toISOString(), now)}`, d.w) : ' '}</Text>
               </Box>

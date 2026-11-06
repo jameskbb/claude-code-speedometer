@@ -125,7 +125,7 @@ export const theme: ThemeDef = {
           </Box>
           <Raster key="floor" columns={FLOOR} rows={FR} cells={floorCells(FLOOR, p, Math.min(100, turn.tools * 5))} />
           <Box flexDirection="row" width={FLOOR} justifyContent="space-between">
-            <Text color={CYAN.text} bold>{`CONTEXT ${p === undefined ? '––' : `${p}%`}`}</Text>
+            <Text color={CYAN.text} bold>{`CONTEXT ${p === undefined ? '––%' : `${p}%`}`}</Text>
             <Text color={CYAN.soft}>{`AGENTS ${running}`}</Text>
             <Text color={ORANGE.text} bold>{`TOOLS ${turn.tools}`}</Text>
           </Box>

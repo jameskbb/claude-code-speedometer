@@ -108,7 +108,7 @@ export const theme: ThemeDef = {
         <Box flexDirection="row" columnGap={1} paddingX={1} backgroundColor={SS.panel} alignItems="flex-end">
           {gauge(second, MW, 'dial-second')}
           <Box flexDirection="column" flexShrink={0}>
-            {small('temp', 'TEMP', p, p === undefined ? '––' : `${p}%`)}
+            {small('temp', 'TEMP', p, p === undefined ? '––%' : `${p}%`)}
             {small('oil', 'OIL', Math.min(100, turn.tools * 5), `${turn.tools}`)}
             <Text> </Text>
             <Text> </Text>

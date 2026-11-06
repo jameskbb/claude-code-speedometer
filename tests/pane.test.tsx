@@ -313,8 +313,11 @@ test('auto slots follow the plan: no 5-hour window moves weekly to the main gaug
   expect(sources(['auto', 'auto', 'auto'], [week, scoped])).toEqual(['weekly', 'context', 'model-weekly'])
   // Before any reading, auto keeps the usual order.
   expect(sources(['auto', 'auto', 'auto'], [])).toEqual(['five-hour', 'weekly', 'model-weekly'])
-  // A set slot wins over auto.
-  expect(sources(['context', 'auto', 'five-hour'], [week])).toEqual(['context', 'context', 'five-hour'])
+  // A set slot wins over auto, and auto skips a source a set slot shows.
+  expect(sources(['context', 'auto', 'five-hour'], [week])).toEqual(['context', 'weekly', 'five-hour'])
+  expect(sources(['weekly', 'auto', 'auto'], [five, week, scoped])).toEqual(['weekly', 'five-hour', 'model-weekly'])
+  // Once a 5-hour window has been seen, a reading without one keeps the usual order.
+  expect(sources(['auto', 'auto', 'auto'], [week, scoped], true)).toEqual(['five-hour', 'weekly', 'model-weekly'])
   const d = dials([week, scoped], 'classic', ['auto', 'auto', 'auto'], 42)
   expect(d.map(x => [x.source, x.label, x.limit?.percent])).toEqual([['weekly', 'weekly', 30], ['context', 'context', 42], ['model-weekly', 'Fable weekly', 10]])
   expect(dials([week], 'classic', ['auto', 'auto', 'auto'])[1]?.limit).toBeUndefined()
