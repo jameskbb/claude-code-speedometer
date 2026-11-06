@@ -5,7 +5,7 @@
 // amber to red as the gauge passes 50% and 80%, and a warned glass wears a
 // red seal on its base. The main gauge (the 5-hour window by default) is the
 // tall glass in the middle, the second on its left and the third on its right.
-import { clamp, encode, PX } from './kit'
+import { clamp, encode, line, PX } from './kit'
 import type { Dial, ThemeCtx, ThemeDef } from './kit'
 
 const HG = {
@@ -114,7 +114,7 @@ export const theme: ThemeDef = {
           {d.limit ? `${d.limit.percent}% used` : '––%'}
         </Text>
         <Text color={HG.parchment} wrap="truncate-end">{d.label}</Text>
-        <Text dimColor wrap="truncate-end">{reset(d) || ' '}</Text>
+        <Text dimColor wrap="truncate-end">{line(reset(d))}</Text>
         {warned(d) ? <Text color="error" bold inverse wrap="truncate-end">{` ${empty(d)} `}</Text> : <Text> </Text>}
       </Box>
     )

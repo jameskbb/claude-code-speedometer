@@ -4,7 +4,7 @@
 // 75 and a dim red mark at 80, where red begins. The fill turns green,
 // yellow, red along its length like the classic dials, and a warned bar ends
 // in a red cap that drops below the line.
-import { clamp, encode, PX, zone, zonePx } from './kit'
+import { clamp, encode, PX, reading, zone, zonePx } from './kit'
 import type { Dial, ThemeCtx, ThemeDef } from './kit'
 
 // Each bar is this many columns wide; its text line spans the same width.
@@ -55,7 +55,7 @@ export const theme: ThemeDef = {
             <Text dimColor>{reset(d) ? `  ${reset(d)}` : ''}</Text>
             {warned(d) ? <Text color="error" bold>{`  ${empty(d)}`}</Text> : ''}
           </Text>
-          <Text color={d.limit ? zone(d.limit.percent) : 'inactive'} bold>{d.limit ? `${d.limit.percent}%` : '––%'}</Text>
+          <Text color={d.limit ? zone(d.limit.percent) : 'inactive'} bold>{reading(d)}</Text>
         </Box>
         <Raster key={`dial-${i}`} columns={d.w} rows={d.rows} cells={d.cells(d.limit?.percent, warned(d))} />
       </Box>

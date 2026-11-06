@@ -6,7 +6,7 @@ type EngineOf = EngineInterface
 import type { SpeedoAgent, SpeedoLimit, SpeedoMode, SpeedoTurn, SpeedoUsage } from '../types'
 
 import { EXTRA } from './themes'
-import { arc, bar, clamp, dialCells, dialRows, DW, encode, PX, seconds, SOURCES, until, zone } from './themes/kit'
+import { arc, bar, clamp, dialCells, dialRows, DW, encode, line, pct, PX, reading, seconds, SOURCES, until, zone } from './themes/kit'
 import type { Category, Dial, Gauge, Source, ThemeCtx } from './themes/kit'
 
 // Re-exported for the tests, which import the pixel math from here.
@@ -238,11 +238,14 @@ export const slotOf = (v: unknown): Slot => (typeof v === 'string' && (SOURCES a
 // on a plan that reports a weekly window but has never reported a 5-hour one
 // this session, weekly moves to the main gauge and context fill takes the
 // second. `sawFive` makes that choice stick, so a reading that happens to lack
-// the 5-hour window never reshuffles the gauges. Auto slots skip any source a
-// set slot already shows.
-export function sources(slots: readonly [Slot, Slot, Slot], all: SpeedoLimit[], sawFive = false): [Source, Source, Source] {
+// the 5-hour window never reshuffles the gauges. A `planless` session (one that
+// has had a reply measured and never reported any window, as with an API key)
+// puts context fill on the main gauge. Auto slots skip any source a set slot
+// already shows.
+export function sources(slots: readonly [Slot, Slot, Slot], all: SpeedoLimit[], sawFive = false, planless = false): [Source, Source, Source] {
   const noFive = !sawFive && !all.some(r => r.kind === 'session') && all.some(r => r.kind === 'weekly_all')
-  const order: Source[] = noFive ? ['weekly', 'context', 'model-weekly', 'five-hour'] : ['five-hour', 'weekly', 'model-weekly', 'context']
+  const order: Source[] = planless && all.length === 0 ? ['context', 'five-hour', 'weekly', 'model-weekly']
+    : noFive ? ['weekly', 'context', 'model-weekly', 'five-hour'] : ['five-hour', 'weekly', 'model-weekly', 'context']
   const free = order.filter(o => !slots.includes(o))
   return slots.map(s => (s === 'auto' ? (free.shift() ?? 'context') : s)) as [Source, Source, Source]
 }
@@ -258,8 +261,8 @@ export function bind(source: Source, all: SpeedoLimit[], context?: number): Omit
 }
 
 // The three dials, in slot order, shaped by the theme.
-export function dials(all: SpeedoLimit[], theme: Theme, slots: readonly [Slot, Slot, Slot] = ['auto', 'auto', 'auto'], context?: number, sawFive = false): Dial[] {
-  const [main, second, third] = sources(slots, all, sawFive).map(s => bind(s, all, context)) as [Omit<Dial, keyof Gauge>, Omit<Dial, keyof Gauge>, Omit<Dial, keyof Gauge>]
+export function dials(all: SpeedoLimit[], theme: Theme, slots: readonly [Slot, Slot, Slot] = ['auto', 'auto', 'auto'], context?: number, sawFive = false, planless = false): Dial[] {
+  const [main, second, third] = sources(slots, all, sawFive, planless).map(s => bind(s, all, context)) as [Omit<Dial, keyof Gauge>, Omit<Dial, keyof Gauge>, Omit<Dial, keyof Gauge>]
   const extra = EXTRA.find(t => t.id === theme)
   if (extra) return extra.gauges(main, second, third)
   return theme === 'eighties-digital-dash' ? [{ ...main, ...sweep }, { ...second, ...fuel }, { ...third, ...tach }]
@@ -475,8 +478,11 @@ export const register: Register = (on, options) => {
   // Off by default: the usage endpoint is asked only when the person turns this on.
   const usageEndpoint = options.usageEndpoint === true
   const slots = [slotOf(options.gauge1), slotOf(options.gauge2), slotOf(options.gauge3)] as const
-  // Set once the plan has reported a 5-hour window this session; see sources().
+  // Set once the plan has reported a 5-hour window, or any window, this
+  // session, and once a reply has been measured; see sources().
   let sawFive = false
+  let sawAny = false
+  let measured = false
   let startedAt = 0
   let tools = 0
 
@@ -498,6 +504,7 @@ export const register: Register = (on, options) => {
   })
 
   on('session.measure', async ($, e, next) => {
+    measured = true
     const u = pick(e)
     await update($, usage, () => u)
     await refresh($, u.rateLimits, hours, usageEndpoint)
@@ -598,7 +605,7 @@ export const register: Register = (on, options) => {
         <Text>
           <Text dimColor>ctx </Text>
           <Text color={tone}>{bar(p ?? 0)}</Text>
-          <Text color={tone} bold>{p === undefined ? ' ––%' : ` ${p}%`}</Text>
+          <Text color={tone} bold>{` ${pct(p)}`}</Text>
           <Text dimColor>{u.tokens !== undefined ? ` ${Math.round(u.tokens / 1000)}k/${Math.round(u.window / 1000)}k` : ''}</Text>
         </Text>
         <Text color={badge.color}>{badge.glyph} {badge.label}</Text>
@@ -623,12 +630,13 @@ export const register: Register = (on, options) => {
     const badge = BADGE[m]
     const centered = (text: string, w: number) => ' '.repeat(Math.max(0, Math.floor((w - text.length) / 2))) + text
     if ((l ?? []).some(r => r.kind === 'session')) sawFive = true
-    const all = dials(l ?? [], theme, slots, p, sawFive)
+    if (l?.length) sawAny = true
+    const all = dials(l ?? [], theme, slots, p, sawFive, measured && !sawAny)
     const facts = ({ Box, Text, Button }: Pick<ReturnType<typeof $.ui.resolve>, 'Box' | 'Text' | 'Button'>) => [
       <Text>
         <Text dimColor>{'context  '}</Text>
         <Text color={p === undefined ? 'inactive' : zone(p)}>{bar(p ?? 0)}</Text>
-        <Text color={p === undefined ? 'inactive' : zone(p)} bold>{p === undefined ? ' ––%' : ` ${p}%`}</Text>
+        <Text color={p === undefined ? 'inactive' : zone(p)} bold>{` ${pct(p)}`}</Text>
         <Text dimColor>{u?.tokens !== undefined ? ` ${Math.round(u.tokens / 1000)}k/${Math.round(u.window / 1000)}k` : ''}</Text>
         {'  '}
         <Text color={badge.color} inverse>{` ${badge.glyph} ${badge.label} `}</Text>
@@ -699,15 +707,14 @@ export const register: Register = (on, options) => {
       const warned = (d: Dial) => d.limit !== undefined && d.limit.kind in warn
       const reset = (d: Dial) => (d.limit?.resetsAt ? `↻ ${until(d.limit.resetsAt, now)}` : d.limit ? '' : 'no reading')
       const empty = (d: Dial) => `! empty in ${until(new Date(warn[d.limit?.kind ?? ''] ?? now).toISOString(), now)}`
-      const pct = (d: Dial) => (d.limit ? `${d.limit.percent}%` : '––%')
       const silver = (text: string) => <Text color={SN.silver} wrap="truncate-end">{text}</Text>
       const big = (d: Dial, slot: string) => (
         <Box flexDirection="column" width={MJ} flexShrink={0} alignItems="center">
           <Raster key={`dial-${slot}`} columns={MJ} rows={MJ / 2} cells={d.cells(d.limit?.percent, warned(d))} />
-          <Text color="#ffffff" bold>{pct(d)}</Text>
+          <Text color="#ffffff" bold>{reading(d)}</Text>
           {silver(d.label)}
           {/* A blank line for a dial with no reset, so the big gauges keep one baseline. */}
-          <Text dimColor wrap="truncate-end">{reset(d) || ' '}</Text>
+          <Text dimColor wrap="truncate-end">{line(reset(d))}</Text>
           {warned(d) ? <Text color="error" bold inverse wrap="truncate-end">{` ${empty(d)} `}</Text> : <Text> </Text>}
         </Box>
       )
@@ -729,13 +736,13 @@ export const register: Register = (on, options) => {
             <Box flexDirection="column" width={25} flexShrink={0} alignItems="center">
               <Box flexDirection="row" columnGap={1}>
                 {small('fuel', 'LEFT', second.limit?.percent, second.limit ? `${100 - second.limit.percent}%` : '––%', warned(second))}
-                {small('temp', 'CONTEXT', p, p === undefined ? '––%' : `${p}%`)}
+                {small('temp', 'CONTEXT', p, pct(p))}
               </Box>
               <Box flexDirection="row" columnGap={1}>
                 {small('oil', 'TOOLS', Math.min(100, t.tools * 5), `${t.tools}`)}
                 {small('boost', 'AGENTS', Math.min(100, running * 20), `${running}`)}
               </Box>
-              <Text color={SN.silver} wrap="truncate-end">{[second.label, pct(second), reset(second)].filter(Boolean).join(' ')}</Text>
+              <Text color={SN.silver} wrap="truncate-end">{[second.label, reading(second), reset(second)].filter(Boolean).join(' ')}</Text>
               {warned(second) ? <Text color="error" bold inverse wrap="truncate-end">{` ${empty(second)} `}</Text> : <Text> </Text>}
             </Box>
             {big(third, 'third')}
@@ -760,10 +767,10 @@ export const register: Register = (on, options) => {
       const gauge = (d: Dial, digitsLeft: boolean, slot: string) => (
         <Box flexDirection="column" width={SW} flexShrink={0} alignItems={digitsLeft ? 'flex-start' : 'flex-end'}>
           <Raster key={`dial-${slot}`} columns={SW} rows={SR} cells={d.cells(d.limit?.percent, warned(d))} />
-          <Text color={LCD.digit} bold wrap="truncate-end">{d.limit ? `${d.limit.percent}%` : '––%'}</Text>
+          <Text color={LCD.digit} bold wrap="truncate-end">{reading(d)}</Text>
           <Text color={LCD.digit} wrap="truncate-end">{d.label}</Text>
           {/* A blank line for a dial with no reset, so the sweeps keep one baseline. */}
-          <Text dimColor wrap="truncate-end">{reset(d) || ' '}</Text>
+          <Text dimColor wrap="truncate-end">{line(reset(d))}</Text>
           {warned(d) ? <Text color="error" bold inverse wrap="truncate-end">{` ${empty(d)} `}</Text> : <Text> </Text>}
         </Box>
       )
@@ -774,7 +781,7 @@ export const register: Register = (on, options) => {
             <Box flexDirection="column" alignItems="center" width={36} flexShrink={0}>
               <Box flexDirection="row" columnGap={1}>
                 <Box flexDirection="column" width={14} flexShrink={0}>
-                  {readout('CONTEXT', p === undefined ? '––%' : `${p}%`)}
+                  {readout('CONTEXT', pct(p))}
                   {amber(' RANGE  TRIP', false)}
                   {amber(` ${u?.tokens !== undefined ? `${Math.round(u.tokens / 1000)}k` : '–'} tok`, true)}
                 </Box>
@@ -788,8 +795,8 @@ export const register: Register = (on, options) => {
                 </Box>
               </Box>
               {/* The second gauge's label and percent always show; a warned one adds the RESERVE lamp. */}
-              {amber(`${second.label.toUpperCase()} ${second.limit ? `${second.limit.percent}%` : '––%'}`, true)}
-              <Text dimColor wrap="truncate-end">{reset(second) || ' '}</Text>
+              {amber(`${second.label.toUpperCase()} ${reading(second)}`, true)}
+              <Text dimColor wrap="truncate-end">{line(reset(second))}</Text>
               {warned(second) ? <Text color="error" bold inverse wrap="truncate-end">{` RESERVE ${empty(second)} `}</Text> : <Text> </Text>}
             </Box>
             {gauge(third, false, 'third')}
@@ -807,7 +814,7 @@ export const register: Register = (on, options) => {
               <Box flexDirection="column" width={d.w}>
                 <Raster key={`dial-${i}`} columns={d.w} rows={d.rows} cells={d.cells(d.limit?.percent, d.limit !== undefined && d.limit.kind in warn)} />
                 <Text color={d.limit ? zone(d.limit.percent) : 'inactive'} bold>
-                  {centered(d.limit ? `${d.limit.percent}%` : '––%', d.w)}
+                  {centered(reading(d), d.w)}
                 </Text>
                 <Text dimColor>{centered(d.label, d.w)}</Text>
                 <Text dimColor>{centered(d.limit?.resetsAt ? `↻ ${until(d.limit.resetsAt, now)}` : d.limit ? '' : 'no reading', d.w) || ' '}</Text>
@@ -827,7 +834,7 @@ export const register: Register = (on, options) => {
           <Text>
             <Text dimColor>{d.label.padEnd(14)}</Text>
             <Text color={d.limit ? zone(d.limit.percent) : 'inactive'}>{bar(d.limit?.percent ?? 0, 20)}</Text>
-            <Text color={d.limit ? zone(d.limit.percent) : 'inactive'} bold>{d.limit ? ` ${d.limit.percent}%` : ' ––%'}</Text>
+            <Text color={d.limit ? zone(d.limit.percent) : 'inactive'} bold>{` ${reading(d)}`}</Text>
             <Text dimColor>{d.limit?.resetsAt ? `  ↻ ${until(d.limit.resetsAt, now)}` : d.limit ? '' : '  no reading'}</Text>
             {d.limit && d.limit.kind in warn && (
               <Text color="error" bold>{`  ! empty in ${until(new Date(warn[d.limit.kind] ?? now).toISOString(), now)}`}</Text>

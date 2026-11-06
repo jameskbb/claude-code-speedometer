@@ -5,7 +5,7 @@
 // left of the gauge is your health, so both empty as it is used. A warned
 // gauge rings its health bar in red and flashes LOW HEALTH; a spent one, GAME
 // OVER; one with no reading yet, a context gauge included, INSERT COIN.
-import { clamp, encode, PX } from './kit'
+import { clamp, encode, line, pct, PX, reading } from './kit'
 import type { Dial, Gauge, ThemeCtx, ThemeDef } from './kit'
 
 // The pixels: a red heart with a white shine and darker edge, a lost heart
@@ -92,12 +92,12 @@ export const theme: ThemeDef = {
           <Text wrap="truncate-end"><Text color={TX.panel} backgroundColor={color} bold>{` ${tag} `}</Text><Text color={TX.white} bold>{` ${d.label.toUpperCase()}`}</Text></Text>
           <Raster key={`dial-${slot}`} columns={AW} rows={AROWS} cells={d.cells(d.limit?.percent, warned(d))} />
           <Text wrap="truncate-end">
-            <Text color={TX.yellow} bold>{d.limit ? `${d.limit.percent}%` : '––%'}</Text>
+            <Text color={TX.yellow} bold>{reading(d)}</Text>
             <Text color={TX.grey}>{' USED  '}</Text>
             <Text color={TX.grey}>{'HP '}</Text>
             <Text color={hp < 0 ? TX.dim : hp > 0.5 ? TX.green : hp > 0.25 ? TX.yellow : TX.red} bold>{hp < 0 ? '––' : String(Math.round(hp * 100)).padStart(2, '0')}</Text>
           </Text>
-          {t(reset(d) || ' ', TX.grey)}
+          {t(line(reset(d)), TX.grey)}
           {/* The banner: no reading is a game not started, 100% is over. */}
           {!d.limit ? t('INSERT COIN', TX.yellow, true)
             : d.limit.percent >= 100 ? <Text color={TX.red} bold inverse wrap="truncate-end">{' GAME OVER '}</Text>
@@ -115,7 +115,7 @@ export const theme: ThemeDef = {
         <Box flexDirection="row" width={3 * AW + 4} justifyContent="space-between">
           {score('1UP', digits(context.tokens))}
           {score('HI-SCORE', digits(context.window))}
-          {score('CTX', context.percent === undefined ? '––%' : `${context.percent}%`, TX.cyan)}
+          {score('CTX', pct(context.percent), TX.cyan)}
           {score('STAGE', String(turn.count).padStart(2, '0'), TX.yellow)}
           {score('CREDIT', context.usd === undefined ? '–' : `$${context.usd.toFixed(2)}`, TX.yellow)}
           {score('AGENTS', String(running), TX.green)}

@@ -318,6 +318,11 @@ test('auto slots follow the plan: no 5-hour window moves weekly to the main gaug
   expect(sources(['weekly', 'auto', 'auto'], [five, week, scoped])).toEqual(['weekly', 'five-hour', 'model-weekly'])
   // Once a 5-hour window has been seen, a reading without one keeps the usual order.
   expect(sources(['auto', 'auto', 'auto'], [week, scoped], true)).toEqual(['five-hour', 'weekly', 'model-weekly'])
+  // A session with no plan windows at all (an API key) puts context on the main gauge.
+  expect(sources(['auto', 'auto', 'auto'], [], false, true)).toEqual(['context', 'five-hour', 'weekly'])
+  expect(sources(['weekly', 'auto', 'auto'], [], false, true)).toEqual(['weekly', 'context', 'five-hour'])
+  // A window that turns up wins over the planless order.
+  expect(sources(['auto', 'auto', 'auto'], [five], false, true)).toEqual(['five-hour', 'weekly', 'model-weekly'])
   const d = dials([week, scoped], 'classic', ['auto', 'auto', 'auto'], 42)
   expect(d.map(x => [x.source, x.label, x.limit?.percent])).toEqual([['weekly', 'weekly', 30], ['context', 'context', 42], ['model-weekly', 'Fable weekly', 10]])
   expect(dials([week], 'classic', ['auto', 'auto', 'auto'])[1]?.limit).toBeUndefined()
@@ -367,6 +372,28 @@ test('classic on a plan with no 5-hour window: weekly on the main gauge, context
     await clean(ui)
     await ui.unmount()
   }
+})
+
+test('a session that reports no windows at all puts context on the main gauge once a reply is measured', async ($, on) => {
+  mock.clock(on)
+  on('session.model', () => ({ value: 'claude-fable-5-1' }))
+  on('session.measure', (_, e) => ({ changed: e.changed }))
+  const label = async () => {
+    const ui = await $.ui.mount({ ...PANE, surface: 'desktop' })
+    const first = (await ui.find({ type: 'Text', text: /^(context|5-hour)/ }))?.text
+    await ui.unmount()
+    return first
+  }
+  // Before any reply the usual order holds.
+  expect(await label()).toMatch(/^5-hour/)
+  await $.session.measure({ context: { percent: 42, tokens: 84000, window: 200000 }, rateLimits: [], changed: ['context'] } as never)
+  expect(await label()).toMatch(/^context.*42%/)
+  // A plan window that turns up later takes the main gauge back, and keeps it.
+  const at = '2027-01-01T00:00:00Z'
+  await $.session.measure({ context: { percent: 43, window: 200000 }, rateLimits: [{ kind: 'five_hour', percentUsed: 20, resetsAt: at }], changed: ['context'] } as never)
+  expect(await label()).toMatch(/^5-hour/)
+  await $.session.measure({ context: { percent: 44, window: 200000 }, rateLimits: [], changed: ['context'] } as never)
+  expect(await label()).toMatch(/^5-hour/)
 })
 
 test('eighties-digital-dash follows the slots: weekly sweep, context in the fuel column', { options: { theme: 'eighties-digital-dash' } }, async ($, on) => {

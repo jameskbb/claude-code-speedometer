@@ -5,7 +5,7 @@
 // middle, its words running from FAIR to STORMY; the third gauge the
 // hygrometer on the right, which reads per cent anyway. Each instrument's
 // name plate sits over the label of what it shows.
-import { clamp, encode, PX } from './kit'
+import { clamp, encode, line, PX, reading } from './kit'
 import type { Dial, ThemeDef } from './kit'
 
 export const BW = 22
@@ -136,14 +136,13 @@ export const theme: ThemeDef = {
     { ...third, w: HW, rows: HW / 2, cells: hygrometerCells },
   ],
   draw: ({ ui: { Box, Text, Raster }, main, second, third, warned, reset, empty }) => {
-    const pct = (d: Dial) => (d.limit ? `${d.limit.percent}%` : '––%')
     const plaque = (name: string) => <Text color={WS.plaqueInk} backgroundColor={WS.plaque} bold>{` ${name} `}</Text>
     // Under each instrument: its brass name plate, the reading and its weather, the gauge's label, the reset, the warning.
     const legend = (d: Dial, name: string, words: readonly string[]) => [
       plaque(name),
-      <Text wrap="truncate-end"><Text color={WS.cream} bold>{pct(d)}</Text><Text color={WS.brass}>{` ${word(d, words)}`}</Text></Text>,
+      <Text wrap="truncate-end"><Text color={WS.cream} bold>{reading(d)}</Text><Text color={WS.brass}>{` ${word(d, words)}`}</Text></Text>,
       <Text color={WS.cream} wrap="truncate-end">{d.label}</Text>,
-      <Text color={WS.grain} wrap="truncate-end">{reset(d) || ' '}</Text>,
+      <Text color={WS.grain} wrap="truncate-end">{line(reset(d))}</Text>,
       warned(d) ? <Text color="error" bold inverse wrap="truncate-end">{` ${empty(d)} `}</Text> : <Text> </Text>,
     ]
     // The thermometer's scale, printed beside the tube at the height of its ticks.

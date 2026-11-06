@@ -4,7 +4,7 @@
 // middle, amber at the bottom. Each row has small labelled windows and a
 // label plate under it. The first window holds the percent used; the rest
 // read the moment the window resets: month, day, AM or PM, hour and minute.
-import { bar, clamp, encode, PX } from './kit'
+import { bar, clamp, encode, line, pct, PX } from './kit'
 import type { Dial, ThemeCtx, ThemeDef } from './kit'
 
 // A row's segment colours: lit, and the dim ghost of an unlit segment.
@@ -135,14 +135,14 @@ export const theme: ThemeDef = {
           <Raster key={`dial-${slot(d)}`} columns={RW} rows={RR} cells={d.cells(p, warned(d))} />
           <Box flexDirection="row" width={RW} backgroundColor={TX.steel}>
             <Box width={WINDOWS.month.x - 1} flexShrink={0} paddingLeft={1}>
-              <Text wrap="truncate-end"><Text color={tube.text} backgroundColor={TX.plate}>{p === undefined ? '▱'.repeat(10) : bar(p, 10)}</Text><Text color={TX.engraved} bold>{p === undefined ? ' ––%' : ` ${p}%`}</Text></Text>
+              <Text wrap="truncate-end"><Text color={tube.text} backgroundColor={TX.plate}>{p === undefined ? '▱'.repeat(10) : bar(p, 10)}</Text><Text color={TX.engraved} bold>{` ${pct(p)}`}</Text></Text>
             </Box>
             <Box width={WINDOWS.ampm.x - WINDOWS.month.x} flexShrink={0} justifyContent="center">
               <Text color={TX.plateText} backgroundColor={TX.plate} bold wrap="truncate-end">{` ${d.label.toUpperCase()} `}</Text>
             </Box>
             <Box width={RW - WINDOWS.ampm.x + 1} flexShrink={0} paddingLeft={1}>
               <Text wrap="truncate-end">
-                <Text color={TX.engraved} bold>{`${reset(d) || ' '} `}</Text>
+                <Text color={TX.engraved} bold>{`${line(reset(d))} `}</Text>
                 {warned(d) ? <Text color="error" bold inverse>{` ${empty(d)} `}</Text> : null}
               </Text>
             </Box>

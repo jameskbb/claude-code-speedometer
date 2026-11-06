@@ -2,7 +2,7 @@
 // black-faced gauges in a row, each overlapping the next, the tachometer the
 // biggest and in front in the middle. White ticks and numerals, orange needles, a red
 // band at the top of the tach's scale, thin silver bezels.
-import { clamp, encode, PX } from './kit'
+import { clamp, encode, line, pct, PX, reading } from './kit'
 import type { Dial, ThemeCtx, ThemeDef } from './kit'
 
 const NB = {
@@ -127,13 +127,12 @@ export const theme: ThemeDef = {
     { ...third, w: SW, rows: SW / 2, cells: sideCells },
   ],
   draw: ({ ui: { Box, Text, Raster }, main, second, third, warned, reset, empty, context, turn, running }: ThemeCtx) => {
-    const pct = (d: Dial) => (d.limit ? `${d.limit.percent}%` : '––%')
     // The gauge's lines under it.
     const under = (d: Dial, w: number) => (
       <Box flexDirection="column" width={w} flexShrink={0} alignItems="center">
-        <Text color={NB.white} bold>{pct(d)}</Text>
+        <Text color={NB.white} bold>{reading(d)}</Text>
         <Text color={NB.white} wrap="truncate-end">{d.label}</Text>
-        <Text color={NB.grey} wrap="truncate-end">{reset(d) || ' '}</Text>
+        <Text color={NB.grey} wrap="truncate-end">{line(reset(d))}</Text>
         {warned(d) ? <Text color="error" bold inverse wrap="truncate-end">{w > 20 ? ` ${empty(d)} ` : empty(d)}</Text> : <Text> </Text>}
       </Box>
     )
@@ -151,7 +150,7 @@ export const theme: ThemeDef = {
         <Box flexDirection="column" paddingX={1} backgroundColor={NB.panel} alignItems="flex-start">
           <Raster key="dash" columns={CW} rows={CR} cells={cells} />
           <Box flexDirection="row">
-            {outer([['CTX', context.percent === undefined ? '––%' : `${context.percent}%`], ['COST', context.usd !== undefined ? `$${context.usd.toFixed(2)}` : '–']])}
+            {outer([['CTX', pct(context.percent)], ['COST', context.usd !== undefined ? `$${context.usd.toFixed(2)}` : '–']])}
             {under(second, 19)}
             {under(main, 24)}
             {under(third, 19)}

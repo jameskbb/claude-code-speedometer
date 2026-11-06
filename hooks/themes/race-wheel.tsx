@@ -2,7 +2,7 @@
 // a carbon-fibre body between two rubber grips, a row of shift lights across
 // the top that fills green, then red, then blue, a small LCD in the middle
 // with big gear-style digits, and coloured rotaries and buttons around it.
-import { clamp, encode, PX } from './kit'
+import { clamp, encode, line, PX, reading } from './kit'
 import type { Dial, ThemeCtx, ThemeDef } from './kit'
 
 const FW = {
@@ -172,14 +172,13 @@ export const theme: ThemeDef = {
     { ...third, w: RW, rows: RW / 2, cells: rotaryCells(FW.orange) },
   ],
   draw: ({ ui: { Box, Text, Raster }, main, second, third, warned, reset, empty, context, turn, running }: ThemeCtx) => {
-    const pct = (d: Dial) => (d.limit ? `${d.limit.percent}%` : '––%')
     const tone = (d: Dial) => (d.limit ? (d.limit.percent >= 80 ? 'error' : d.limit.percent >= 50 ? 'warning' : 'success') : TX.grey)
     // A gauge's lines under its rotary or the LCD, then one button's readout.
     const under = (d: Dial, w: number, dot: string, key: string, value: string) => (
       <Box flexDirection="column" width={w} flexShrink={0} alignItems="center">
-        <Text color={tone(d)} bold>{pct(d)}</Text>
+        <Text color={tone(d)} bold>{reading(d)}</Text>
         <Text color={TX.white} wrap="truncate-end">{d.label}</Text>
-        <Text color={TX.grey} wrap="truncate-end">{reset(d) || ' '}</Text>
+        <Text color={TX.grey} wrap="truncate-end">{line(reset(d))}</Text>
         {warned(d) ? <Text color="error" bold inverse wrap="truncate-end">{` ${empty(d)} `}</Text> : <Text> </Text>}
         <Text wrap="truncate-end"><Text color={dot}>{'● '}</Text><Text color={TX.grey}>{`${key} `}</Text><Text color={TX.white} bold>{value}</Text></Text>
       </Box>

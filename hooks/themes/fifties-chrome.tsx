@@ -2,7 +2,7 @@
 // upper dash with a chrome hood over a long curved glass window, where a
 // coloured ribbon slides along a strip under the numbers, chrome fins either
 // side, and an ivory lower dash with two small chrome-ringed gauges.
-import { clamp, encode, PX } from './kit'
+import { clamp, encode, line, pct, PX, reading } from './kit'
 import type { Dial, ThemeCtx, ThemeDef } from './kit'
 
 const BA = {
@@ -143,13 +143,13 @@ export const theme: ThemeDef = {
     { ...third, w: GW, rows: GROWS, cells: roundCells },
   ],
   draw: ({ ui: { Box, Text, Raster }, main, second, third, warned, reset, empty }: ThemeCtx) => {
-    const pct = (d: Dial) => <Text color={d.limit ? inkFor(d.limit.percent) : TX.soft} bold>{d.limit ? `${d.limit.percent}%` : '––%'}</Text>
+    const pct = (d: Dial) => <Text color={d.limit ? inkFor(d.limit.percent) : TX.soft} bold>{reading(d)}</Text>
     // A window's lines: percent, label, reset, and the warning in inverse red.
     const lines = (d: Dial, align: 'flex-start' | 'flex-end' | 'center', w: number) => (
       <Box flexDirection="column" width={w} flexShrink={0} alignItems={align} paddingX={1}>
         {pct(d)}
         <Text color={TX.ink} bold wrap="truncate-end">{d.label}</Text>
-        <Text color={TX.soft} wrap="truncate-end">{reset(d) || ' '}</Text>
+        <Text color={TX.soft} wrap="truncate-end">{line(reset(d))}</Text>
         {warned(d) ? <Text color="error" bold inverse wrap="truncate-end">{` ${empty(d)} `}</Text> : <Text> </Text>}
       </Box>
     )

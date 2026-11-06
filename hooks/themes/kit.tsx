@@ -81,6 +81,13 @@ export const until = (iso: string | undefined, now: number) => {
 
 // Round once to whole seconds so 359.6 s reads 6m0s, not 5m60s.
 export const seconds = (ms: number) => { const s = Math.round(ms / 1000); return s >= 60 ? `${Math.floor(s / 60)}m${s % 60}s` : `${s}s` }
+// A percent as a cluster prints it: `62%`, or `––%` with no reading.
+export const pct = (p: number | undefined) => (p === undefined ? '––%' : `${p}%`)
+// A dial's reading as a percent.
+export const reading = (d: { limit?: { percent: number } }) => pct(d.limit?.percent)
+// A text row that keeps its line when it has nothing to say, so the rows
+// under it do not move up.
+export const line = (s: string) => s || ' '
 
 // A gauge: its width and height in cells, and how it paints a percent (or
 // none, as undefined) and whether its window is warned.
@@ -146,9 +153,9 @@ export const placeholder = (id: string, category: Category): ThemeDef => ({
         {[main, second, third].map((d, i) => (
           <Box flexDirection="column" width={d.w} flexShrink={0} alignItems="center">
             <Raster key={`dial-${i}`} columns={d.w} rows={d.rows} cells={d.cells(d.limit?.percent, warned(d))} />
-            <Text color={d.limit ? zone(d.limit.percent) : 'inactive'} bold>{d.limit ? `${d.limit.percent}%` : '––%'}</Text>
+            <Text color={d.limit ? zone(d.limit.percent) : 'inactive'} bold>{reading(d)}</Text>
             <Text dimColor wrap="truncate-end">{d.label}</Text>
-            <Text dimColor wrap="truncate-end">{reset(d) || ' '}</Text>
+            <Text dimColor wrap="truncate-end">{line(reset(d))}</Text>
             <Text color="error" bold wrap="truncate-end">{warned(d) ? empty(d) : ' '}</Text>
           </Box>
         ))}

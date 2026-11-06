@@ -4,7 +4,7 @@
 // zone colour of its height (green to 50%, yellow to 80%, red above) and
 // unlit segments stay as a dim track in the same hue, so the scale is always
 // visible. A warned column gets a bright red bar across its 80% mark.
-import { clamp, encode, PX, zone, zonePx } from './kit'
+import { clamp, encode, line, PX, reading, zone, zonePx } from './kit'
 import type { Dial, ThemeCtx, ThemeDef } from './kit'
 
 // Dim versions of the zone colours for unlit segments, and a plain track for
@@ -64,10 +64,10 @@ export const theme: ThemeDef = {
   draw: ({ ui: { Box, Text, Raster }, main, second, third, warned, reset, empty }: ThemeCtx) => {
     const column = (d: Dial, i: number) => (
       <Box flexDirection="column" width={COL} flexShrink={0} alignItems="center">
-        <Text color={d.limit ? zone(d.limit.percent) : 'inactive'} bold>{d.limit ? `${d.limit.percent}%` : '––%'}</Text>
+        <Text color={d.limit ? zone(d.limit.percent) : 'inactive'} bold>{reading(d)}</Text>
         <Raster key={`dial-${i}`} columns={d.w} rows={d.rows} cells={d.cells(d.limit?.percent, warned(d))} />
         <Text dimColor wrap="truncate-end">{d.label}</Text>
-        <Text dimColor wrap="truncate-end">{reset(d) || ' '}</Text>
+        <Text dimColor wrap="truncate-end">{line(reset(d))}</Text>
         <Text color="error" bold wrap="truncate-end">{warned(d) ? empty(d) : ' '}</Text>
       </Box>
     )

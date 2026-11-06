@@ -2,7 +2,7 @@
 // display: a dark navy screen, a strip of page tabs across the top, a round
 // segmented boost gauge with its reading in digits, and segmented bar graphs
 // lit blue-white with an amber top end, a digital readout beside each.
-import { clamp, encode, PX, seconds } from './kit'
+import { clamp, encode, line, pct, PX, reading, seconds } from './kit'
 import type { Dial, ThemeCtx, ThemeDef } from './kit'
 
 // The pixels: the screen's navy, unlit segments, lit blue-white with a
@@ -121,7 +121,6 @@ export const theme: ThemeDef = {
     // Keys by slot, not label: two slots may show the same source.
     const slot = (d: Dial) => (d === main ? 'main' : d === second ? 'second' : 'third')
     const t = (text: string, color: string, bold = false) => <Text color={color} bold={bold} wrap="truncate-end">{text}</Text>
-    const pct = (d: Dial) => (d.limit ? `${d.limit.percent}%` : '––%')
     const alarm = (d: Dial) => (warned(d) ? <Text color="error" bold inverse wrap="truncate-end">{` ${empty(d)} `}</Text> : <Text> </Text>)
     const pair = (k: string, v: string) => <Text wrap="truncate-end"><Text color={TX.amber} bold>{k.padEnd(7)}</Text><Text color={TX.white} bold>{v}</Text></Text>
     // A bar graph: its name and reset over the bar, the percent and the
@@ -142,7 +141,7 @@ export const theme: ThemeDef = {
         {warn ?? null}
       </Box>
     )
-    const win = (d: Dial, name: string) => graph(name, reset(d), pct(d), d.label, d.cells(d.limit?.percent, warned(d)), `dial-${slot(d)}`, alarm(d))
+    const win = (d: Dial, name: string) => graph(name, reset(d), reading(d), d.label, d.cells(d.limit?.percent, warned(d)), `dial-${slot(d)}`, alarm(d))
     const tab = (name: string, on: boolean) => (on
       ? <Text color={TX.screen} backgroundColor={TX.white} bold>{` ${name} `}</Text>
       : <Text color={TX.blue}>{` ${name} `}</Text>)
@@ -159,9 +158,9 @@ export const theme: ThemeDef = {
             <Raster key="dial-main" columns={GW} rows={main.rows} cells={main.cells(main.limit?.percent, warned(main))} />
             <Box flexDirection="column" width={GRW} paddingLeft={1}>
               {t('BOOST', TX.amber, true)}
-              {t(pct(main), TX.white, true)}
+              {t(reading(main), TX.white, true)}
               {t(main.label, TX.blue)}
-              {t(reset(main) || ' ', TX.dim)}
+              {t(line(reset(main)), TX.dim)}
               {alarm(main)}
               <Text> </Text>
               {pair('TOOLS', `${turn.tools}`)}
@@ -171,7 +170,7 @@ export const theme: ThemeDef = {
           <Box flexDirection="column" width={BARW + BRW} flexShrink={0}>
             {win(second, 'OIL TEMP')}
             {win(third, 'INTAKE TEMP')}
-            {graph('THROTTLE', context.tokens === undefined ? '' : `${Math.round(context.tokens / 1000)}k`, context.percent === undefined ? '––%' : `${context.percent}%`, 'context', barCells(context.percent, false, BARW), 'bar-throttle')}
+            {graph('THROTTLE', context.tokens === undefined ? '' : `${Math.round(context.tokens / 1000)}k`, pct(context.percent), 'context', barCells(context.percent, false, BARW), 'bar-throttle')}
           </Box>
         </Box>
       </Box>
