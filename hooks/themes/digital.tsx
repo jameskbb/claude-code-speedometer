@@ -1,5 +1,6 @@
-// The digital cluster: no dials, three big-number tiles side by side. Each
-// window's percent is drawn in large pixel numerals coloured by its zone,
+// The digital cluster: no dials, three big-number tiles side by side, one per
+// gauge slot (main, second, third; each shows its configured source). Each
+// gauge's percent is drawn in large pixel numerals coloured by its zone,
 // with a thin progress line under it and the label and reset in small text.
 // A warned tile gets a red dot by its number. With no reading, dashes.
 import { clamp, encode, PX } from './kit'
@@ -92,17 +93,17 @@ const line = (d: Dial) => {
 export const theme: ThemeDef = {
   id: 'digital',
   category: 'classic',
-  gauges: (five, week, model) => [
-    { ...five, w: TILE, rows: NH / 2, cells: (p, warn) => readoutCells(p, warn) },
-    { ...week, w: TILE, rows: NH / 2, cells: (p, warn) => readoutCells(p, warn) },
-    { ...model, w: TILE, rows: NH / 2, cells: (p, warn) => readoutCells(p, warn) },
+  gauges: (main, second, third) => [
+    { ...main, w: TILE, rows: NH / 2, cells: (p, warn) => readoutCells(p, warn) },
+    { ...second, w: TILE, rows: NH / 2, cells: (p, warn) => readoutCells(p, warn) },
+    { ...third, w: TILE, rows: NH / 2, cells: (p, warn) => readoutCells(p, warn) },
   ],
-  draw: ({ ui: { Box, Text, Raster }, five, week, model, warned, reset, empty }: ThemeCtx) => {
-    const tile = (d: Dial) => {
+  draw: ({ ui: { Box, Text, Raster }, main, second, third, warned, reset, empty }: ThemeCtx) => {
+    const tile = (d: Dial, i: number) => {
       const l = line(d)
       return (
         <Box flexDirection="column" width={TILE} flexShrink={0}>
-          <Raster key={`dial-${d.label}`} columns={d.w} rows={d.rows} cells={d.cells(d.limit?.percent, warned(d))} />
+          <Raster key={`dial-${i}`} columns={d.w} rows={d.rows} cells={d.cells(d.limit?.percent, warned(d))} />
           <Text>
             <Text color={l.tone}>{'━'.repeat(l.on)}</Text>
             <Text color={DG.track}>{'─'.repeat(TILE - l.on)}</Text>
@@ -117,7 +118,7 @@ export const theme: ThemeDef = {
     }
     return (
       <Box flexDirection="column">
-        <Box flexDirection="row" columnGap={2}>{[five, week, model].map(tile)}</Box>
+        <Box flexDirection="row" columnGap={2}>{[main, second, third].map(tile)}</Box>
       </Box>
     )
   },

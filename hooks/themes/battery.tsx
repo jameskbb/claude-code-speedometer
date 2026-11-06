@@ -1,7 +1,8 @@
-// The battery cluster: three flat battery icons in a row, one per window.
-// The charge is what the window has left, so a battery drains as the window
-// is used. Its cells take the zone colour of the percent used, and a warned
-// battery gets a red exclamation mark beside its terminal.
+// The battery cluster: three flat battery icons in a row, one per gauge slot
+// (main, second, third; each shows its configured source). The charge is what
+// the slot's reading has left, so a battery drains as its window (or the
+// context window) fills. Its cells take the zone colour of the percent used,
+// and a warned battery gets a red exclamation mark beside its terminal.
 import { clamp, encode, PX, zone, zonePx } from './kit'
 import type { Dial, ThemeCtx, ThemeDef } from './kit'
 
@@ -49,22 +50,22 @@ const cell = (p: number | undefined, warn: boolean) => batteryCells(p, warn)
 export const theme: ThemeDef = {
   id: 'battery',
   category: 'classic',
-  gauges: (five, week, model) => [
-    { ...five, w: BW, rows: BH / 2, cells: cell },
-    { ...week, w: BW, rows: BH / 2, cells: cell },
-    { ...model, w: BW, rows: BH / 2, cells: cell },
+  gauges: (main, second, third) => [
+    { ...main, w: BW, rows: BH / 2, cells: cell },
+    { ...second, w: BW, rows: BH / 2, cells: cell },
+    { ...third, w: BW, rows: BH / 2, cells: cell },
   ],
-  draw: ({ ui: { Box, Text, Raster }, five, week, model, warned, reset, empty }: ThemeCtx) => (
+  draw: ({ ui: { Box, Text, Raster }, main, second, third, warned, reset, empty }: ThemeCtx) => (
     <Box flexDirection="row" columnGap={3}>
-      {[five, week, model].map(d => (
+      {[main, second, third].map((d, i) => (
         <Box flexDirection="column" width={d.w} flexShrink={0}>
-          <Raster key={`dial-${d.label}`} columns={d.w} rows={d.rows} cells={d.cells(d.limit?.percent, warned(d))} />
+          <Raster key={`dial-${i}`} columns={d.w} rows={d.rows} cells={d.cells(d.limit?.percent, warned(d))} />
           <Text wrap="truncate-end">
             <Text color={d.limit ? zone(d.limit.percent) : 'inactive'} bold>{d.limit ? `${d.limit.percent}%` : '––%'}</Text>
             <Text dimColor>{d.limit ? ' used' : ''}</Text>
           </Text>
           <Text wrap="truncate-end">{d.label}</Text>
-          <Text dimColor wrap="truncate-end">{reset(d)}</Text>
+          <Text dimColor wrap="truncate-end">{reset(d) || ' '}</Text>
           <Text color="error" bold wrap="truncate-end">{warned(d) ? empty(d) : ' '}</Text>
         </Box>
       ))}

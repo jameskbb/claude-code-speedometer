@@ -1,4 +1,5 @@
-// The bars cluster: three wide progress bars stacked, one per window. Each
+// The bars cluster: three wide progress bars stacked, one per gauge slot
+// (main, second, third; each shows its configured source). Each
 // is a thin half-block bar over a dim track, with faint ticks at 25, 50 and
 // 75 and a dim red mark at 80, where red begins. The fill turns green,
 // yellow, red along its length like the classic dials, and a warned bar ends
@@ -40,13 +41,13 @@ export function barCells(percent: number | undefined, warn = false, w = BW): str
 export const theme: ThemeDef = {
   id: 'bars',
   category: 'classic',
-  gauges: (five, week, model) => [
-    { ...five, w: BW, rows: 1, cells: (p, warn) => barCells(p, warn) },
-    { ...week, w: BW, rows: 1, cells: (p, warn) => barCells(p, warn) },
-    { ...model, w: BW, rows: 1, cells: (p, warn) => barCells(p, warn) },
+  gauges: (main, second, third) => [
+    { ...main, w: BW, rows: 1, cells: (p, warn) => barCells(p, warn) },
+    { ...second, w: BW, rows: 1, cells: (p, warn) => barCells(p, warn) },
+    { ...third, w: BW, rows: 1, cells: (p, warn) => barCells(p, warn) },
   ],
-  draw: ({ ui: { Box, Text, Raster }, five, week, model, warned, reset, empty }: ThemeCtx) => {
-    const row = (d: Dial) => (
+  draw: ({ ui: { Box, Text, Raster }, main, second, third, warned, reset, empty }: ThemeCtx) => {
+    const row = (d: Dial, i: number) => (
       <Box flexDirection="column" width={d.w} flexShrink={0}>
         <Box flexDirection="row" width={d.w} justifyContent="space-between">
           <Text wrap="truncate-end">
@@ -56,12 +57,12 @@ export const theme: ThemeDef = {
           </Text>
           <Text color={d.limit ? zone(d.limit.percent) : 'inactive'} bold>{d.limit ? `${d.limit.percent}%` : '––%'}</Text>
         </Box>
-        <Raster key={`dial-${d.label}`} columns={d.w} rows={d.rows} cells={d.cells(d.limit?.percent, warned(d))} />
+        <Raster key={`dial-${i}`} columns={d.w} rows={d.rows} cells={d.cells(d.limit?.percent, warned(d))} />
       </Box>
     )
     return (
       <Box flexDirection="column" rowGap={1}>
-        {[five, week, model].map(row)}
+        {[main, second, third].map(row)}
       </Box>
     )
   },

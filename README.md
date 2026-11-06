@@ -126,7 +126,7 @@ No gauges, only the session's facts: context with an activity badge, cost, model
 <details>
 <summary>How <code>bars</code> reads your windows</summary>
 
-Three wide progress bars stacked, one per window, for the most information in the fewest rows. Each bar fills left to right over a dim track, turning green, then yellow past 50% and red past 80%, with faint ticks at 25, 50 and 75 and a dim red mark at 80 where red begins. The label, reset time and percent sit on one line above each bar; a warned window adds its empty-in time in red and a red cap at the end of its fill.
+Three wide progress bars stacked, one per gauge slot, for the most information in the fewest rows. Each gauge shows the source set for its slot under `/config` (by default the 5-hour window, the weekly window and the per-model weekly window) and prints that source's label. Each bar fills left to right over a dim track, turning green, then yellow past 50% and red past 80%, with faint ticks at 25, 50 and 75 and a dim red mark at 80 where red begins. The label, reset time (none for context) and percent sit on one line above each bar; a warned window adds its empty-in time in red and a red cap at the end of its fill.
 
 </details>
 
@@ -139,11 +139,11 @@ Three wide progress bars stacked, one per window, for the most information in th
 <details>
 <summary>How <code>rings</code> reads your windows</summary>
 
-Three round rings side by side, one per window, like an activity ring. Each fills clockwise from twelve o'clock over a dim track, green, then yellow past 50% and red past 80%, with the percent in the middle of the ring. A warned ring stops short of its head, where a small red bead sits.
+Three round rings side by side, one per gauge slot, like an activity ring. Each gauge shows the source set for its slot under `/config` (by default the 5-hour window, the weekly window and the per-model weekly window) and prints that source's label. Each fills clockwise from twelve o'clock over a dim track, green, then yellow past 50% and red past 80%, with the percent in the middle of the ring and the label and reset time under it. A warned ring stops short of its head, where a small red bead sits.
 
 </details>
 
-**`battery`**: three batteries that drain as each window is used.
+**`battery`**: three batteries that drain as each gauge fills.
 
 <p align="center">
   <img src="docs/images/cluster-battery.png" alt="The battery cluster: three grey-outlined battery icons with five charge cells each, the 5-hour battery with two yellow cells left at 62% used, a red exclamation mark beside its terminal and an empty-in warning, the weekly battery with three green cells left at 37% used, and the Fable weekly battery with one red cell left at 84% used" width="100%">
@@ -152,7 +152,7 @@ Three round rings side by side, one per window, like an activity ring. Each fill
 <details>
 <summary>How <code>battery</code> reads your windows</summary>
 
-Three flat battery icons in a row, like a status-bar battery scaled up. The charge is what the window has left, so each battery drains as the window is used, in five cells that turn from green to yellow to red as the window passes 50% and 80% used. Under each battery are its percent used, label and reset time; a warned battery gets a red exclamation mark beside its terminal and an empty-in warning.
+Three flat battery icons in a row, one per gauge slot, like a status-bar battery scaled up. Each gauge shows the source set for its slot under `/config` (by default the 5-hour window, the weekly window and the per-model weekly window) and prints that source's label. The charge is what is left, so each battery drains as its gauge fills, in five cells that turn from green to yellow to red past 50% and 80% used. Under each battery are its percent used, label and reset time; a warned battery gets a red exclamation mark beside its terminal and an empty-in warning.
 
 </details>
 
@@ -165,7 +165,7 @@ Three flat battery icons in a row, like a status-bar battery scaled up. The char
 <details>
 <summary>How <code>digital</code> reads your windows</summary>
 
-No dials, three big-number tiles side by side. Each window's percent is drawn in large seven-segment pixel numerals with a small percent sign, coloured by zone, over a thin progress line, with the window's label and reset on one line beneath. A warned tile gets a red dot above its percent sign and the empty-in warning in red; with no reading it shows dashes.
+No dials, three big-number tiles side by side, one per gauge slot. Each gauge shows the source set for its slot under `/config` (by default the 5-hour window, the weekly window and the per-model weekly window) and prints that source's label. Each gauge's percent is drawn in large seven-segment pixel numerals with a small percent sign, coloured by zone, over a thin progress line, with the label and reset on one line beneath. A warned tile gets a red dot above its percent sign and the empty-in warning in red; with no reading it shows dashes.
 
 </details>
 
@@ -178,7 +178,7 @@ No dials, three big-number tiles side by side. Each window's percent is drawn in
 <details>
 <summary>How <code>columns</code> reads your windows</summary>
 
-Three segmented level columns side by side, filling from the bottom like a level meter. Each segment takes the colour of its height (green to 50%, yellow to 80%, red above) and unlit segments stay as a dim track in the same hue, so the scale always shows. The percent sits above each column, the label and reset under it, and a faint 0/50/100 scale runs beside the first. A warned column gets a bright red bar across its 80% mark.
+Three segmented level columns side by side, one per gauge slot, filling from the bottom like a level meter. Each gauge shows the source set for its slot under `/config` (by default the 5-hour window, the weekly window and the per-model weekly window) and prints that source's label. Each segment takes the colour of its height (green to 50%, yellow to 80%, red above) and unlit segments stay as a dim track in the same hue, so the scale always shows. The percent sits above each column, the label and reset under it, and a faint 0/50/100 scale runs beside the first. A warned column gets a bright red bar across its 80% mark.
 
 </details>
 

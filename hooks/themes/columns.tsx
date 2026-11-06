@@ -1,5 +1,6 @@
 // The columns cluster: three segmented level columns side by side, one per
-// window, filling from the bottom like a level meter. Each segment takes the
+// gauge slot (main, second, third; each shows its configured source),
+// filling from the bottom like a level meter. Each segment takes the
 // zone colour of its height (green to 50%, yellow to 80%, red above) and
 // unlit segments stay as a dim track in the same hue, so the scale is always
 // visible. A warned column gets a bright red bar across its 80% mark.
@@ -7,7 +8,7 @@ import { clamp, encode, PX, zone, zonePx } from './kit'
 import type { Dial, ThemeCtx, ThemeDef } from './kit'
 
 // Dim versions of the zone colours for unlit segments, and a plain track for
-// a window with no reading.
+// a gauge with no reading.
 const DIM = { green: 0x1d3a24, yellow: 0x3d3218, red: 0x47201e, none: 0x2a2a2a }
 const ALERT = 0xff3b30
 
@@ -59,14 +60,14 @@ const scaleRows = () => {
 export const theme: ThemeDef = {
   id: 'columns',
   category: 'classic',
-  gauges: (five, week, model) => [five, week, model].map(d => ({ ...d, w: COLW, rows: SEGS, cells: (p: number | undefined, warn: boolean) => columnCells(p, warn) })) as [Dial, Dial, Dial],
-  draw: ({ ui: { Box, Text, Raster }, five, week, model, warned, reset, empty }: ThemeCtx) => {
-    const column = (d: Dial) => (
+  gauges: (main, second, third) => [main, second, third].map(d => ({ ...d, w: COLW, rows: SEGS, cells: (p: number | undefined, warn: boolean) => columnCells(p, warn) })) as [Dial, Dial, Dial],
+  draw: ({ ui: { Box, Text, Raster }, main, second, third, warned, reset, empty }: ThemeCtx) => {
+    const column = (d: Dial, i: number) => (
       <Box flexDirection="column" width={COL} flexShrink={0} alignItems="center">
         <Text color={d.limit ? zone(d.limit.percent) : 'inactive'} bold>{d.limit ? `${d.limit.percent}%` : '––%'}</Text>
-        <Raster key={`dial-${d.label}`} columns={d.w} rows={d.rows} cells={d.cells(d.limit?.percent, warned(d))} />
+        <Raster key={`dial-${i}`} columns={d.w} rows={d.rows} cells={d.cells(d.limit?.percent, warned(d))} />
         <Text dimColor wrap="truncate-end">{d.label}</Text>
-        <Text dimColor wrap="truncate-end">{reset(d)}</Text>
+        <Text dimColor wrap="truncate-end">{reset(d) || ' '}</Text>
         <Text color="error" bold wrap="truncate-end">{warned(d) ? empty(d) : ' '}</Text>
       </Box>
     )
@@ -76,7 +77,7 @@ export const theme: ThemeDef = {
           <Text> </Text>
           {scaleRows().map(s => <Text dimColor>{s || ' '}</Text>)}
         </Box>
-        {[five, week, model].map(column)}
+        {[main, second, third].map(column)}
       </Box>
     )
   },

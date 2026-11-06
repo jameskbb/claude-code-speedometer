@@ -1,4 +1,5 @@
-// The rings cluster: three round rings side by side, one per window, each
+// The rings cluster: three round rings side by side, one per gauge slot
+// (main, second, third; each shows its configured source), each
 // filling clockwise from twelve o'clock over a dim track, with rounded ends
 // and the percent in the hole. The ring is green, then yellow past 50% and
 // red past 80%; a warned ring carries a red bead at its head.
@@ -72,13 +73,13 @@ const COL = 26
 export const theme: ThemeDef = {
   id: 'rings',
   category: 'classic',
-  gauges: (five, week, model) => [
-    { ...five, w: N, rows: N / 2, cells: ringCells },
-    { ...week, w: N, rows: N / 2, cells: ringCells },
-    { ...model, w: N, rows: N / 2, cells: ringCells },
+  gauges: (main, second, third) => [
+    { ...main, w: N, rows: N / 2, cells: ringCells },
+    { ...second, w: N, rows: N / 2, cells: ringCells },
+    { ...third, w: N, rows: N / 2, cells: ringCells },
   ],
-  draw: ({ ui: { Box, Text, Raster }, five, week, model, warned, reset, empty }: ThemeCtx) => {
-    const ring = (d: Dial) => {
+  draw: ({ ui: { Box, Text, Raster }, main, second, third, warned, reset, empty }: ThemeCtx) => {
+    const ring = (d: Dial, i: number) => {
       const cells = d.cells(d.limit?.percent, warned(d))
       const mid = (d.rows - 1) / 2
       // The ring's side on the centre row: up to the hole.
@@ -86,24 +87,24 @@ export const theme: ThemeDef = {
       const hole = d.w - 2 * side
       return (
         <Box flexDirection="column" width={COL} flexShrink={0} alignItems="center">
-          <Raster key={`dial-${d.label}`} columns={d.w} rows={mid} cells={cut(cells, d.w, 0, 0, d.w, mid)} />
+          <Raster key={`dial-${i}`} columns={d.w} rows={mid} cells={cut(cells, d.w, 0, 0, d.w, mid)} />
           <Box flexDirection="row" width={d.w}>
-            <Raster key={`dial-${d.label}-l`} columns={side} rows={1} cells={cut(cells, d.w, 0, mid, side, 1)} />
+            <Raster key={`dial-${i}-l`} columns={side} rows={1} cells={cut(cells, d.w, 0, mid, side, 1)} />
             <Box width={hole} flexShrink={0} justifyContent="center">
-              <Text color={d.limit ? zone(d.limit.percent) : 'inactive'} bold>{d.limit ? `${d.limit.percent}%` : '––'}</Text>
+              <Text color={d.limit ? zone(d.limit.percent) : 'inactive'} bold>{d.limit ? `${d.limit.percent}%` : '––%'}</Text>
             </Box>
-            <Raster key={`dial-${d.label}-r`} columns={side} rows={1} cells={cut(cells, d.w, d.w - side, mid, side, 1)} />
+            <Raster key={`dial-${i}-r`} columns={side} rows={1} cells={cut(cells, d.w, d.w - side, mid, side, 1)} />
           </Box>
-          <Raster key={`dial-${d.label}-b`} columns={d.w} rows={mid} cells={cut(cells, d.w, 0, mid + 1, d.w, mid)} />
+          <Raster key={`dial-${i}-b`} columns={d.w} rows={mid} cells={cut(cells, d.w, 0, mid + 1, d.w, mid)} />
           <Text wrap="truncate-end">{d.label}</Text>
-          <Text dimColor wrap="truncate-end">{reset(d)}</Text>
+          <Text dimColor wrap="truncate-end">{reset(d) || ' '}</Text>
           <Text color="error" bold wrap="truncate-end">{warned(d) ? empty(d) : ' '}</Text>
         </Box>
       )
     }
     return (
       <Box flexDirection="column">
-        <Box flexDirection="row" columnGap={2} paddingX={1}>{[five, week, model].map(ring)}</Box>
+        <Box flexDirection="row" columnGap={2} paddingX={1}>{[main, second, third].map(ring)}</Box>
       </Box>
     )
   },
