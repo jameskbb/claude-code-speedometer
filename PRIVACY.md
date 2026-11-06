@@ -32,14 +32,15 @@ start, steps and end of turns, tool calls and subagents (their type,
 description, model and token count). These live only in the session's
 in-memory state. They are not written to disk by the plugin and are not sent
 anywhere. The plugin does not read your prompts, Claude's replies or the
-content of tool calls.
+content of tool calls, other than a subagent's short description.
 
 ### Its own settings
 
-The plugin reads its own options from your Claude Code settings (the gauge
-cluster and the burn-rate options you set under `/config`). If you saved a
+The plugin reads the plugin-options block of your Claude Code settings and
+uses only its own entry (the gauge cluster and the other options you set
+under `/config`). If you saved a
 gauge cluster under a name from an earlier version, it saves the same choice
-again under the new name. It reads no other settings.
+again under the new name. It writes no other settings.
 
 ### The plugin store (kept on your machine)
 
@@ -79,7 +80,7 @@ environment variable and writes none.
 The plugin can show your plan's per-model weekly window and more exact
 reset times by reading Anthropic's usage endpoint, the one Claude Code's
 `/usage` command reads. This is off by default. It runs only if you turn on
-the `usageEndpoint` option under `/config`.
+the **Read per-model limits** option (`usageEndpoint`) under `/config`.
 
 When it is on:
 

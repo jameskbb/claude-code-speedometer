@@ -64,7 +64,7 @@ One key, `history`: for each rate-limit window, up to 300 samples of a time and 
 
 ### Its own settings
 
-It reads its own options from your Claude Code settings. If the saved gauge cluster uses a theme's old name, it saves it once under the new name at session start. It reads and writes no other settings.
+It reads the plugin-options block of your Claude Code settings and uses only its own entry. If the saved gauge cluster uses a theme's old name, it saves it once under the new name at session start. It writes no other settings.
 
 ### Environment variables
 
@@ -423,6 +423,8 @@ Under `/config`:
 | **Work day starts** | `08:00` | Used only when **Count every hour** is off. HH:MM local; equal start and end counts every hour. |
 | **Work day ends** | `17:00` | Used only when **Count every hour** is off. HH:MM local. |
 | **Count weekends** | off | Used only when **Count every hour** is off: count Saturday and Sunday. |
+
+Upgrading from 0.6 or earlier: the per-model window used to be read by default. From 0.7.0 it needs **Read per-model limits** turned on; until then the third gauge shows no reading.
 
 ## Development
 

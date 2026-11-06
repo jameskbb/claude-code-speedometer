@@ -294,3 +294,13 @@ test('by default the usage endpoint is never asked, and burn rate still records'
   expect(authorized).toHaveLength(0)
   expect(calls).toHaveLength(0)
 })
+
+test('with the endpoint on but failing, the engine windows stay live and burn rate records', ON, async ($, on) => {
+  const { clock, stored } = endpoint(on, () => { throw new Error('no sign-in') })
+  const at = '2027-01-01T00:00:00Z'
+  const measure = (five: number) => ({ ...MEASURE, rateLimits: [{ kind: 'five_hour', percentUsed: five, resetsAt: at }, { kind: 'seven_day', percentUsed: 12, resetsAt: at }] }) as never
+  await $.session.measure(measure(40))
+  await clock.advance(61_000)
+  await $.session.measure(measure(45))
+  expect((stored.history as Record<string, { p: number }[]>).session.map(s => s.p)).toEqual([40, 45])
+})

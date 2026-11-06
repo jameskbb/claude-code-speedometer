@@ -434,8 +434,17 @@ async function refresh($: EngineOf, rl: SpeedoUsage['rateLimits'], h: Hours, end
     return
   }
   const fresh = due ? await fetchLimits($).catch(() => null) : null
-  await update($, limits, had => fresh ?? had ?? fromEngine(rl))
-  if (fresh) await remember($, fresh, now, h)
+  if (fresh) {
+    await update($, limits, () => fresh)
+    await remember($, fresh, now, h)
+    return
+  }
+  // No new answer: the engine's own windows stay live, and any window only
+  // the endpoint reports (the per-model one) keeps its last reading.
+  const own = fromEngine(rl)
+  const kinds = new Set(own.map(l => l.kind))
+  await update($, limits, had => [...own, ...(had ?? []).filter(l => !kinds.has(l.kind))])
+  if (due && own.length) await remember($, own, now, h)
 }
 
 export const register: Register = (on, options) => {
