@@ -418,6 +418,9 @@ Under `/config`:
 | Row | Default | What it does |
 |---|---|---|
 | **Gauge cluster** | `classic` | The look of the pane: any id from [the gallery](#the-gallery). |
+| **Main gauge** | `auto` | What the main gauge shows: `five-hour`, `weekly`, `model-weekly` or `context` (context window fill). `auto` shows the 5-hour window, or the weekly window on a plan with no 5-hour limit. |
+| **Second gauge** | `auto` | The same choices. `auto` shows the weekly window, or context fill on a plan with no 5-hour limit. |
+| **Third gauge** | `auto` | The same choices. `auto` shows the per-model weekly window, which needs **Read per-model limits** on. |
 | **Read per-model limits** | off | Ask the usage endpoint `GET https://api.anthropic.com/api/oauth/usage`, at most once a minute, for the per-model weekly window, using the session's own sign-in through Claude Code; the plugin never sees the token. Off: no network request is made, and only the 5-hour and weekly windows Claude Code reports are shown. See [Usage endpoint](#usage-endpoint). |
 | **Count every hour** | on | Project burn rate over every hour of every day. Off: only the work day set below, Monday to Friday unless **Count weekends** is on. |
 | **Work day starts** | `08:00` | Used only when **Count every hour** is off. HH:MM local; equal start and end counts every hour. |

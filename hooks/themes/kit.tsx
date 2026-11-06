@@ -85,8 +85,13 @@ export const seconds = (ms: number) => { const s = Math.round(ms / 1000); return
 // A gauge: its width and height in cells, and how it paints a percent (or
 // none, as undefined) and whether its window is warned.
 export type Gauge = { w: number; rows: number; cells: (percent: number | undefined, warn: boolean) => string }
-// A gauge bound to one window: its label, and the window's reading if any.
-export type Dial = Gauge & { label: string; limit?: SpeedoLimit }
+// What a gauge slot can show. Set per slot under /config (`gauge1`, `gauge2`,
+// `gauge3`); `auto` there picks one from what the plan reports.
+export const SOURCES = ['five-hour', 'weekly', 'model-weekly', 'context'] as const
+export type Source = (typeof SOURCES)[number]
+// A gauge bound to one source: which it is, its label, and its reading if any.
+// A `context` dial's limit has no resetsAt and is never warned.
+export type Dial = Gauge & { source: Source; label: string; limit?: SpeedoLimit }
 
 export const arc = (w: number): Gauge => ({ w, rows: dialRows(w), cells: (p, warn) => dialCells(p, warn, w) })
 
@@ -94,11 +99,17 @@ export const arc = (w: number): Gauge => ({ w, rows: dialRows(w), cells: (p, war
 export type Category = 'classic' | 'vehicles' | 'beyond'
 
 // What a theme's draw() gets: the drawing surface's elements, the three dials
-// (5-hour, weekly, model weekly) as the theme's gauges() built them, and the
+// (main, second, third) as the theme's gauges() built them, and the
 // readings a cluster prints beside its gauges.
 export type ThemeCtx = {
   // The terminal's elements: Box, Text, Button, Raster.
   ui: any
+  // The three gauge slots, in the order gauges() built them. What each shows
+  // is configured (see Source); draw by slot, and print each dial's label.
+  main: Dial
+  second: Dial
+  third: Dial
+  // Deprecated aliases of main, second and third, kept while themes move over.
   five: Dial
   week: Dial
   model: Dial
@@ -121,8 +132,8 @@ export type ThemeDef = {
   // The /config value, lowercase-kebab.
   id: string
   category: Category
-  // The three gauges, in the order 5-hour, weekly, model weekly.
-  gauges: (five: Omit<Dial, keyof Gauge>, week: Omit<Dial, keyof Gauge>, model: Omit<Dial, keyof Gauge>) => [Dial, Dial, Dial]
+  // The three gauges, in slot order: main, second, third.
+  gauges: (main: Omit<Dial, keyof Gauge>, second: Omit<Dial, keyof Gauge>, third: Omit<Dial, keyof Gauge>) => [Dial, Dial, Dial]
   // The pane's tree on the terminal surface.
   draw: (ctx: ThemeCtx) => unknown
 }

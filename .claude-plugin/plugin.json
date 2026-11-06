@@ -45,6 +45,45 @@
       ],
       "default": "classic"
     },
+    "gauge1": {
+      "type": "string",
+      "title": "Main gauge",
+      "description": "What the main gauge shows. auto: the 5-hour window, or the weekly window on a plan with no 5-hour limit. Or pick one: five-hour, weekly, model-weekly, context (context window fill).",
+      "options": [
+        "auto",
+        "five-hour",
+        "weekly",
+        "model-weekly",
+        "context"
+      ],
+      "default": "auto"
+    },
+    "gauge2": {
+      "type": "string",
+      "title": "Second gauge",
+      "description": "What the second gauge shows. auto: the weekly window, or context fill on a plan with no 5-hour limit. Or pick one: five-hour, weekly, model-weekly, context (context window fill).",
+      "options": [
+        "auto",
+        "five-hour",
+        "weekly",
+        "model-weekly",
+        "context"
+      ],
+      "default": "auto"
+    },
+    "gauge3": {
+      "type": "string",
+      "title": "Third gauge",
+      "description": "What the third gauge shows. auto: the per-model weekly window (needs Read per-model limits). Or pick one: five-hour, weekly, model-weekly, context (context window fill).",
+      "options": [
+        "auto",
+        "five-hour",
+        "weekly",
+        "model-weekly",
+        "context"
+      ],
+      "default": "auto"
+    },
     "usageEndpoint": {
       "type": "boolean",
       "title": "Read per-model limits",

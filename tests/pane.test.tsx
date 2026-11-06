@@ -1,6 +1,6 @@
 import { expect, mock, test } from 'claude-code/testing'
 
-import { afterWorking, barCells, categoryOf, dialCells, dialRows, dials, faceCells, FR, FW, minorCells, MJ, MN, parseHours, project, SR, SW, sweepCells, tachCells, THEMES, workingMs } from '../hooks/register'
+import { afterWorking, barCells, categoryOf, dialCells, dialRows, dials, faceCells, FR, FW, minorCells, MJ, MN, parseHours, project, slotOf, sources, SR, SW, sweepCells, tachCells, THEMES, workingMs } from '../hooks/register'
 
 const PANE = {
   plugin: 'speedometer',
@@ -303,4 +303,22 @@ test('with the endpoint on but failing, the engine windows stay live and burn ra
   await clock.advance(61_000)
   await $.session.measure(measure(45))
   expect((stored.history as Record<string, { p: number }[]>).session.map(s => s.p)).toEqual([40, 45])
+})
+
+test('auto slots follow the plan: no 5-hour window moves weekly to the main gauge and context to the second', () => {
+  const week = { kind: 'weekly_all', label: 'weekly', percent: 30 }
+  const five = { kind: 'session', label: '5-hour', percent: 60 }
+  const scoped = { kind: 'weekly_scoped', label: 'Fable weekly', percent: 10 }
+  expect(sources(['auto', 'auto', 'auto'], [five, week, scoped])).toEqual(['five-hour', 'weekly', 'model-weekly'])
+  expect(sources(['auto', 'auto', 'auto'], [week, scoped])).toEqual(['weekly', 'context', 'model-weekly'])
+  // Before any reading, auto keeps the usual order.
+  expect(sources(['auto', 'auto', 'auto'], [])).toEqual(['five-hour', 'weekly', 'model-weekly'])
+  // A set slot wins over auto.
+  expect(sources(['context', 'auto', 'five-hour'], [week])).toEqual(['context', 'context', 'five-hour'])
+  const d = dials([week, scoped], 'classic', ['auto', 'auto', 'auto'], 42)
+  expect(d.map(x => [x.source, x.label, x.limit?.percent])).toEqual([['weekly', 'weekly', 30], ['context', 'context', 42], ['model-weekly', 'Fable weekly', 10]])
+  expect(dials([week], 'classic', ['auto', 'auto', 'auto'])[1]?.limit).toBeUndefined()
+  expect(slotOf('weekly')).toBe('weekly')
+  expect(slotOf('nonsense')).toBe('auto')
+  expect(slotOf(undefined)).toBe('auto')
 })

@@ -6,8 +6,8 @@ type EngineOf = EngineInterface
 import type { SpeedoAgent, SpeedoLimit, SpeedoMode, SpeedoTurn, SpeedoUsage } from '../types'
 
 import { EXTRA } from './themes'
-import { arc, bar, clamp, dialCells, dialRows, DW, encode, PX, seconds, until, zone } from './themes/kit'
-import type { Category, Dial, Gauge, ThemeCtx } from './themes/kit'
+import { arc, bar, clamp, dialCells, dialRows, DW, encode, PX, seconds, SOURCES, until, zone } from './themes/kit'
+import type { Category, Dial, Gauge, Source, ThemeCtx } from './themes/kit'
 
 // Re-exported for the tests, which import the pixel math from here.
 export { dialCells, dialRows, DW }
@@ -230,20 +230,38 @@ const sweep: Gauge = { w: SW, rows: SR, cells: sweepCells }
 const fuel: Gauge = { w: FW, rows: FR, cells: barCells }
 const tach: Gauge = { w: SW, rows: SR, cells: tachCells }
 
-// The three dials: the 5-hour window, the weekly window, and the weekly
-// per-model window (`weekly_scoped`, labelled by the model it scopes), in the
-// theme's order and sizes.
-export function dials(all: SpeedoLimit[], theme: Theme): Dial[] {
-  const five = { label: '5-hour', limit: all.find(r => r.kind === 'session') }
-  const week = { label: 'weekly', limit: all.find(r => r.kind === 'weekly_all') }
-  const scoped = all.find(r => r.kind === 'weekly_scoped')
-  const model = { label: scoped?.label ?? 'model weekly', limit: scoped }
+// A slot's /config value: one source, or `auto`.
+export type Slot = Source | 'auto'
+export const slotOf = (v: unknown): Slot => (typeof v === 'string' && (SOURCES as readonly string[]).includes(v) ? (v as Source) : 'auto')
+
+// What each slot shows. `auto` follows the plan: 5-hour, weekly, model weekly;
+// on a plan that reports a weekly window but no 5-hour one, weekly moves to
+// the main gauge and context fill takes the second.
+export function sources(slots: readonly [Slot, Slot, Slot], all: SpeedoLimit[]): [Source, Source, Source] {
+  const noFive = !all.some(r => r.kind === 'session') && all.some(r => r.kind === 'weekly_all')
+  const auto: [Source, Source, Source] = noFive ? ['weekly', 'context', 'model-weekly'] : ['five-hour', 'weekly', 'model-weekly']
+  return slots.map((s, i) => (s === 'auto' ? auto[i] : s)) as [Source, Source, Source]
+}
+
+// One slot's dial, without its gauge shape: the source's label and reading.
+export function bind(source: Source, all: SpeedoLimit[], context?: number): Omit<Dial, keyof Gauge> {
+  if (source === 'context') return { source, label: 'context', limit: context === undefined ? undefined : { kind: 'context', label: 'context', percent: context } }
+  if (source === 'model-weekly') {
+    const scoped = all.find(r => r.kind === 'weekly_scoped')
+    return { source, label: scoped?.label ?? 'model weekly', limit: scoped }
+  }
+  return source === 'five-hour' ? { source, label: '5-hour', limit: all.find(r => r.kind === 'session') } : { source, label: 'weekly', limit: all.find(r => r.kind === 'weekly_all') }
+}
+
+// The three dials, in slot order, shaped by the theme.
+export function dials(all: SpeedoLimit[], theme: Theme, slots: readonly [Slot, Slot, Slot] = ['auto', 'auto', 'auto'], context?: number): Dial[] {
+  const [main, second, third] = sources(slots, all).map(s => bind(s, all, context)) as [Omit<Dial, keyof Gauge>, Omit<Dial, keyof Gauge>, Omit<Dial, keyof Gauge>]
   const extra = EXTRA.find(t => t.id === theme)
-  if (extra) return extra.gauges(five, week, model)
-  return theme === 'eighties-digital-dash' ? [{ ...five, ...sweep }, { ...week, ...fuel }, { ...model, ...tach }]
-    // The fuel gauge reads what is left, so its needle drops as the week burns.
-    : theme === 'silver-bezel' ? [{ ...five, ...major }, { ...week, w: MN, rows: MN / 2, cells: (p, warn) => minorCells(p === undefined ? undefined : 100 - p, warn) }, { ...model, ...major }]
-    : [{ ...five, ...arc(DW) }, { ...week, ...arc(DW) }, { ...model, ...arc(DW) }]
+  if (extra) return extra.gauges(main, second, third)
+  return theme === 'eighties-digital-dash' ? [{ ...main, ...sweep }, { ...second, ...fuel }, { ...third, ...tach }]
+    // The fuel gauge reads what is left, so its needle drops as the slot fills.
+    : theme === 'silver-bezel' ? [{ ...main, ...major }, { ...second, w: MN, rows: MN / 2, cells: (p, warn) => minorCells(p === undefined ? undefined : 100 - p, warn) }, { ...third, ...major }]
+    : [{ ...main, ...arc(DW) }, { ...second, ...arc(DW) }, { ...third, ...arc(DW) }]
 }
 
 // The engine only reports the 5-hour and weekly windows: all the gauges show
@@ -452,6 +470,7 @@ export const register: Register = (on, options) => {
   const hours = parseHours(String(options.workStart ?? '08:00'), String(options.workEnd ?? '17:00'), options.weekends === true, options.wallClock !== false)
   // Off by default: the usage endpoint is asked only when the person turns this on.
   const usageEndpoint = options.usageEndpoint === true
+  const slots = [slotOf(options.gauge1), slotOf(options.gauge2), slotOf(options.gauge3)] as const
   let startedAt = 0
   let tools = 0
 
@@ -594,7 +613,7 @@ export const register: Register = (on, options) => {
     const window = u?.window ?? 200_000
     const badge = BADGE[m]
     const centered = (text: string, w: number) => ' '.repeat(Math.max(0, Math.floor((w - text.length) / 2))) + text
-    const all = dials(l ?? [], theme)
+    const all = dials(l ?? [], theme, slots, p)
     const lcd = theme === 'eighties-digital-dash'
     const facts = ({ Box, Text, Button }: Pick<ReturnType<typeof $.ui.resolve>, 'Box' | 'Text' | 'Button'>) => [
       <Text>
@@ -650,10 +669,11 @@ export const register: Register = (on, options) => {
 
     const extra = EXTRA.find(x => x.id === theme)
     if (e.surface === 'terminal' && extra) {
-      const [five, week, model] = all as [Dial, Dial, Dial]
+      const [main, second, third] = all as [Dial, Dial, Dial]
       const ctx: ThemeCtx = {
         ui: $.ui.resolve(e),
-        five, week, model,
+        main, second, third,
+        five: main, week: second, model: third,
         warned: d => d.limit !== undefined && d.limit.kind in warn,
         reset: d => (d.limit?.resetsAt ? `↻ ${until(d.limit.resetsAt, now)}` : d.limit ? '' : 'no reading'),
         empty: d => `! empty in ${until(new Date(warn[d.limit?.kind ?? ''] ?? now).toISOString(), now)}`,
