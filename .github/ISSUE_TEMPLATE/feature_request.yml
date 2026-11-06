@@ -1,0 +1,20 @@
+name: Feature request
+description: Suggest a new gauge cluster, a new reading or a change in behaviour.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What you would like
+      description: The feature or cluster, and the problem it solves for you.
+    validations:
+      required: true
+  - type: textarea
+    id: reference
+    attributes:
+      label: Reference
+      description: For a new cluster, the kind of dashboard or instrument it should evoke. Clusters draw no logos, emblems or brand wordmarks.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered

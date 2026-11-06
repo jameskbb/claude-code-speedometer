@@ -432,6 +432,14 @@ scripts/check.sh
 
 Vehicle, film and series names are trademarks of their owners and are used only to say which dashboard a cluster is modelled on. This project is not affiliated with or endorsed by any of them.
 
+## Privacy
+
+The plugin collects nothing for its developer and sends no telemetry. [PRIVACY.md](PRIVACY.md) is the privacy policy: what it reads, what it keeps on your machine and for how long, and how to delete it.
+
+## Support
+
+Report bugs and ask questions in [GitHub Issues](https://github.com/jameskbb/claude-code-speedometer/issues); see [SUPPORT.md](SUPPORT.md). Report security problems privately as [SECURITY.md](SECURITY.md) describes.
+
 ## License
 
 MIT

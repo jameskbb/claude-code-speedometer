@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/jameskbb/claude-code-speedometer/security/advisories/new
+    about: Report security problems privately through GitHub private vulnerability reporting, not in a public issue.
+  - name: Privacy policy
+    url: https://github.com/jameskbb/claude-code-speedometer/blob/main/PRIVACY.md
+    about: What the plugin reads, keeps and sends.

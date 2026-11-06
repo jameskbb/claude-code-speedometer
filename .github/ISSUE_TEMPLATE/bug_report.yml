@@ -1,0 +1,53 @@
+name: Bug report
+description: Something in the pane, the band or the gauges is wrong.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. For a security problem, use private vulnerability reporting instead (see SECURITY.md). Do not paste tokens, credentials or private paths.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you saw, and what you expected to see instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Pick the gauge cluster ... under /config
+        2. ...
+    validations:
+      required: true
+  - type: input
+    id: plugin-version
+    attributes:
+      label: Speedometer version
+      description: The version shown by /plugin for speedometer.
+    validations:
+      required: true
+  - type: input
+    id: claude-version
+    attributes:
+      label: Claude Code version
+      description: The output of `claude --version`.
+    validations:
+      required: true
+  - type: input
+    id: cluster
+    attributes:
+      label: Gauge cluster
+      description: The theme id from /config, such as classic or vu-meter.
+  - type: input
+    id: terminal
+    attributes:
+      label: Operating system and terminal
+      placeholder: macOS 15, iTerm2 / Windows 11, Windows Terminal / Linux, kitty
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshot or anything else
+      description: A screenshot of the pane or band helps most.
