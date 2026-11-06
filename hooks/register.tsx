@@ -242,8 +242,8 @@ export function dials(all: SpeedoLimit[], theme: Theme): Dial[] {
     : [{ ...five, ...arc(DW) }, { ...week, ...arc(DW) }, { ...model, ...arc(DW) }]
 }
 
-// The engine only reports the 5-hour and weekly windows; the fallback while
-// the usage endpoint has not answered.
+// The engine only reports the 5-hour and weekly windows: all the gauges show
+// with the usage endpoint off, and the fallback while it has not answered.
 const fromEngine = (rl: SpeedoUsage['rateLimits']): SpeedoLimit[] =>
   rl.flatMap(r =>
     r.kind === 'five_hour' ? [{ kind: 'session', label: '5-hour', percent: r.percentUsed, resetsAt: r.resetsAt }]
@@ -412,14 +412,23 @@ async function cyclePonytail($: EngineOf, current: string) {
   await $.session.append({ message: { type: 'user', content: [{ type: 'text', text: `PONYTAIL MODE CHANGED: level ${next}` }] } })
 }
 
-// Asks the usage endpoint at most once a minute, a failed or refused call
-// included, so an outage never turns into a retry on every measurement; the
-// engine's own two windows stand in until the first answer. A failure is
-// dropped whole: nothing of the request or its error is logged or shown.
-async function refresh($: EngineOf, rl: SpeedoUsage['rateLimits'], h: Hours) {
+// Runs at most once a minute, a failed or refused call included, so an outage
+// never turns into a retry on every measurement and the burn-rate history
+// takes one sample a minute. With the usage endpoint off (the default) the
+// gauges show the engine's own two windows and nothing leaves the session.
+// With it on, the endpoint is asked on that cadence and the engine's windows
+// stand in until the first answer. A failure is dropped whole: nothing of the
+// request or its error is logged or shown.
+async function refresh($: EngineOf, rl: SpeedoUsage['rateLimits'], h: Hours, endpoint: boolean) {
   const now = await $.clock.now()
   const due = now - fetchedAt > 60_000
   if (due) fetchedAt = now
+  if (!endpoint) {
+    const own = fromEngine(rl)
+    await update($, limits, () => own)
+    if (due && own.length) await remember($, own, now, h)
+    return
+  }
   const fresh = due ? await fetchLimits($).catch(() => null) : null
   await update($, limits, had => fresh ?? had ?? fromEngine(rl))
   if (fresh) await remember($, fresh, now, h)
@@ -428,6 +437,8 @@ async function refresh($: EngineOf, rl: SpeedoUsage['rateLimits'], h: Hours) {
 export const register: Register = (on, options) => {
   let theme = resolveTheme(options.theme)
   const hours = parseHours(String(options.workStart ?? '08:00'), String(options.workEnd ?? '17:00'), options.weekends === true, options.wallClock !== false)
+  // Off by default: the usage endpoint is asked only when the person turns this on.
+  const usageEndpoint = options.usageEndpoint === true
   let startedAt = 0
   let tools = 0
 
@@ -436,7 +447,7 @@ export const register: Register = (on, options) => {
     await $.command.register({ name: 'speedometer', description: 'Open the context speedometer pane' })
     const seed = pick(await $.session.usage())
     await update($, usage, () => seed)
-    await refresh($, seed.rateLimits, hours)
+    await refresh($, seed.rateLimits, hours, usageEndpoint)
     const level = await readPonytail($)
     await update($, ponytail, () => level)
     void $.ui.open({ id: PANE, title: TITLE })
@@ -451,7 +462,7 @@ export const register: Register = (on, options) => {
   on('session.measure', async ($, e, next) => {
     const u = pick(e)
     await update($, usage, () => u)
-    await refresh($, u.rateLimits, hours)
+    await refresh($, u.rateLimits, hours, usageEndpoint)
     const p = u.percent
     if (p !== undefined) {
       const crossed = THRESHOLDS.filter(t => p >= t).pop() ?? 0

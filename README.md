@@ -11,7 +11,7 @@
   <a href="#install"><img alt="Claude Code plugin" src="https://img.shields.io/badge/Claude%20Code-plugin-d97757?style=for-the-badge"></a>
 </p>
 
-<p align="center"><b>Your 5-hour, weekly and per-model usage windows as a gauge cluster beside the chat.</b></p>
+<p align="center"><b>Your 5-hour, weekly and, if you opt in, per-model usage windows as a gauge cluster beside the chat.</b></p>
 
 <p align="center">
   <a href="#install">Install</a> · <a href="#what-you-see">What you see</a> · <a href="#the-gallery">The gallery</a> · <a href="#burn-rate-warnings">Burn-rate warnings</a> · <a href="#configuration">Configuration</a>
@@ -29,7 +29,7 @@ Answer `y` to add the marketplace, then pick a scope. The pane opens on its own 
 
 ## What you see
 
-- **The pane**: three gauges beside the chat, for the 5-hour window, the weekly window and the weekly per-model window (Fable, Opus, whichever your plan scopes), each with its reset time. Meters fill green, then yellow past 50%, then red past 80%.
+- **The pane**: three gauges beside the chat, for the 5-hour window, the weekly window and the weekly per-model window (Fable, Opus, whichever your plan scopes), each with its reset time. The per-model gauge has a reading only when **Read per-model limits** is on. Meters fill green, then yellow past 50%, then red past 80%.
 - **The band**: one line above the prompt with context usage, an activity badge, session cost, turn stats, running subagents, and the [ponytail](https://github.com/DietrichGebert/ponytail) level when that plugin is active for the project. The engine's `[-]` collapses it.
 - **Warnings**: a window on course to run out before it resets turns red and says when, and a toast warns at 80% and 90% context.
 
@@ -37,15 +37,15 @@ Answer `y` to add the marketplace, then pick a scope. The pane opens on its own 
   <img src="docs/images/band.png" alt="The band above the prompt: ctx bar at 42% with 84k of 200k tokens, a thinking badge, $1.23, turn 12 at 23s with 7 tools, 1 agent running, ponytail full, and a red 5-hour burn-rate warning" width="100%">
 </p>
 
-The per-model window comes from the same usage endpoint `/usage` reads, through the session's own credential; the plugin never sees the token.
+The 5-hour and weekly windows are the figures Claude Code itself reports. The per-model window comes from the usage endpoint `/usage` reads, and only when you turn on **Read per-model limits** under `/config`; the request uses the session's own sign-in through Claude Code, and the plugin never sees the token.
 
 ## What it reads, writes and sends
 
-Everything below is in [`hooks/register.tsx`](hooks/register.tsx); `claude plugin validate .` lists the same calls. The plugin runs no processes, sends no telemetry and makes one kind of network call only, to the usage endpoint.
+Everything below is in [`hooks/register.tsx`](hooks/register.tsx); `claude plugin validate .` lists the same calls. The plugin runs no processes and sends no telemetry. By default it makes no network request at all; its one kind of network call, to the usage endpoint, is made only when **Read per-model limits** is on.
 
 ### Usage endpoint
 
-This is the plugin's only network request, and it goes only to Anthropic.
+This is the plugin's only network request, it goes only to Anthropic, and it is made only when **Read per-model limits** is on under `/config`. That option is off by default: with it off the plugin never asks for the session's sign-in, makes no network request at all, and shows the 5-hour and weekly windows Claude Code itself reports.
 
 - **Where**: `GET https://api.anthropic.com/api/oauth/usage`, Anthropic's own endpoint, the one Claude Code's `/usage` command reads. The request has no body; its only header from the plugin is `anthropic-beta: oauth-2025-04-20`.
 - **Credential**: the plugin asks Claude Code for the session's sign-in with `$.session.authorize()` and gets back an opaque handle, not the token. Claude Code adds the credential header itself, over https, and only for Anthropic's own host. The plugin never holds, stores, logs or shows the token. With no Anthropic sign-in (a third-party provider, a gateway, no login) there is no handle and no request is made. Setting `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` makes Claude Code refuse the request.
@@ -60,7 +60,7 @@ It reads the session's own figures through the engine: context fill, token count
 
 ### Plugin store (kept across sessions)
 
-One key, `history`: for each rate-limit window, up to 300 samples of a time and a percent used, none older than 24 hours. It is written each time the usage endpoint answers and is read back to work out the [burn-rate warnings](#burn-rate-warnings). Nothing else is stored.
+One key, `history`: for each rate-limit window, up to 300 samples of a time and a percent used, none older than 24 hours. It is written at most once a minute: from the 5-hour and weekly figures Claude Code reports, or, with **Read per-model limits** on, each time the usage endpoint answers. It is read back to work out the [burn-rate warnings](#burn-rate-warnings). Nothing else is stored.
 
 ### Environment variables
 
@@ -414,6 +414,7 @@ Under `/config`:
 | Row | Default | What it does |
 |---|---|---|
 | **Gauge cluster** | `classic` | The look of the pane: any id from [the gallery](#the-gallery). |
+| **Read per-model limits** | off | Ask the usage endpoint `GET https://api.anthropic.com/api/oauth/usage`, at most once a minute, for the per-model weekly window, using the session's own sign-in through Claude Code; the plugin never sees the token. Off: no network request is made, and only the 5-hour and weekly windows Claude Code reports are shown. See [Usage endpoint](#usage-endpoint). |
 | **Count every hour** | on | Project burn rate over every hour of every day. Off: only the work day set below, Monday to Friday unless **Count weekends** is on. |
 | **Work day starts** | `08:00` | Used only when **Count every hour** is off. HH:MM local; equal start and end counts every hour. |
 | **Work day ends** | `17:00` | Used only when **Count every hour** is off. HH:MM local. |

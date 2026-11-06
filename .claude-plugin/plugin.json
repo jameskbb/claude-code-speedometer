@@ -43,6 +43,12 @@
       ],
       "default": "classic"
     },
+    "usageEndpoint": {
+      "type": "boolean",
+      "title": "Read per-model limits",
+      "description": "Ask https://api.anthropic.com/api/oauth/usage, at most once a minute, for the per-model weekly window. The request uses the session's own sign-in through Claude Code; the plugin never sees the token. Off: no network request is made, and only the 5-hour and weekly windows Claude Code reports are shown.",
+      "default": false
+    },
     "wallClock": {
       "type": "boolean",
       "title": "Count every hour",

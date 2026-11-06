@@ -225,17 +225,19 @@ const endpoint = (on: Parameters<Parameters<typeof test>[1]>[1], answer: (n: num
   const stored: Record<string, unknown> = {}
   on('store.get', (_, e) => ({ value: stored[e.key] }))
   on('store.set', (_, e) => { stored[e.key] = e.value; return { value: undefined } })
-  on('session.authorize', () => ({ value: { handle: HANDLE, kind: 'bearer' } }))
+  const authorized: unknown[] = []
+  on('session.authorize', (_, e) => { authorized.push(e); return { value: { handle: HANDLE, kind: 'bearer' } } })
   on('session.measure', (_, e) => ({ changed: e.changed }))
   const calls: { url: string; init?: unknown }[] = []
   const shown: string[] = []
   on('http.fetch', (_, e) => { calls.push(e); return answer(calls.length) as never })
   on('ui.toast', (_, e) => { shown.push(JSON.stringify(e)); return { value: undefined } })
   on('ui.status', (_, e) => { shown.push(JSON.stringify(e)); return { value: undefined } })
-  return { clock, calls, shown, stored }
+  return { clock, calls, shown, stored, authorized }
 }
+const ON = { options: { usageEndpoint: true } }
 
-test('the usage endpoint is asked by handle, once a minute, and its answer kept', async ($, on) => {
+test('the usage endpoint is asked by handle, once a minute, and its answer kept', ON, async ($, on) => {
   const body = { limits: [{ kind: 'session', percent: 61.54, resets_at: '2027-01-01T00:00:00Z' }, { kind: 'weekly_scoped', percent: 12, scope: { model: { display_name: 'Fable' } } }], account: 'not kept' }
   const { clock, calls, stored } = endpoint(on, () => ({ value: { status: 200, ok: true, headers: {}, text: JSON.stringify(body) } }))
   await $.session.measure(MEASURE)
@@ -252,7 +254,7 @@ test('the usage endpoint is asked by handle, once a minute, and its answer kept'
   expect(calls).toHaveLength(2)
 })
 
-test('a failed call surfaces nothing and is not retried within the minute', async ($, on) => {
+test('a failed call surfaces nothing and is not retried within the minute', ON, async ($, on) => {
   const { clock, calls, shown, stored } = endpoint(on, () => { throw new Error(`refused: Authorization: Bearer ${HANDLE}`) })
   await $.session.measure(MEASURE)
   await $.session.measure(MEASURE)
@@ -265,7 +267,7 @@ test('a failed call surfaces nothing and is not retried within the minute', asyn
   expect(shown.join('')).not.toContain(HANDLE)
 })
 
-test('a call that never answers gives up and lets the session go on', async ($, on) => {
+test('a call that never answers gives up and lets the session go on', ON, async ($, on) => {
   const { clock, calls } = endpoint(on, () => new Promise(() => {}))
   let done = false
   const measured = $.session.measure(MEASURE).then(() => { done = true })
@@ -275,4 +277,20 @@ test('a call that never answers gives up and lets the session go on', async ($, 
   await clock.advance(5_000)
   await measured
   expect(done).toBe(true)
+})
+
+test('by default the usage endpoint is never asked, and burn rate still records', async ($, on) => {
+  const { clock, calls, stored, authorized } = endpoint(on, () => { throw new Error('must not be called') })
+  const at = '2027-01-01T00:00:00Z'
+  const measure = (five: number) => ({ ...MEASURE, rateLimits: [{ kind: 'five_hour', percentUsed: five, resetsAt: at }, { kind: 'seven_day', percentUsed: 12, resetsAt: at }] }) as never
+  await $.session.measure(measure(40))
+  expect(stored.history).toEqual({ session: [{ t: clock.now(), p: 40 }], weekly_all: [{ t: clock.now(), p: 12 }] })
+  // Within the minute the gauges follow the engine, but the history takes no new sample.
+  await $.session.measure(measure(41))
+  expect((stored.history as Record<string, unknown[]>).session).toHaveLength(1)
+  await clock.advance(61_000)
+  await $.session.measure(measure(45))
+  expect((stored.history as Record<string, unknown[]>).session).toEqual([{ t: clock.now() - 61_000, p: 40 }, { t: clock.now(), p: 45 }])
+  expect(authorized).toHaveLength(0)
+  expect(calls).toHaveLength(0)
 })
