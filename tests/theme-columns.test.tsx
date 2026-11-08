@@ -45,6 +45,8 @@ test('the columns theme draws the pane', { options: { theme: 'columns' } }, asyn
 })
 
 // A plan with no 5-hour window: only the weekly windows, and context at 42%.
+// The weekly window resets at 02:00 and the mock clock reads 00:00, so
+// 166 of its 168 hours have passed: week pace reads 99%.
 const noFive = (on: Parameters<Parameters<typeof test>[1]>[1]) => {
   mock.clock(on)
   on('session.model', () => ({ value: 'claude-fable-5-1' }))
@@ -66,16 +68,17 @@ const noFive = (on: Parameters<Parameters<typeof test>[1]>[1]) => {
 // The drawn tree's strings, in order.
 const texts = (n: any): string[] => (typeof n === 'string' ? [n] : n && typeof n === 'object' ? (n.children ?? []).flatMap(texts) : [])
 
-test('with no 5-hour window the main gauge shows weekly and the second context', { options: { theme: 'columns' } }, async ($, on) => {
+test('with no 5-hour window the main gauge shows weekly and the second week pace', { options: { theme: 'columns' } }, async ($, on) => {
   noFive(on)
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
   const tree = await ui.drawn()
   const all = texts(tree)
   const text = all.join('|')
   expect(all.indexOf('weekly')).toBeGreaterThanOrEqual(0)
-  expect(all.indexOf('weekly')).toBeLessThan(all.indexOf('context'))
+  expect(all.indexOf('weekly')).toBeLessThan(all.indexOf('week pace'))
   expect(text.indexOf('12%')).toBeGreaterThanOrEqual(0)
-  expect(text.indexOf('12%')).toBeLessThan(text.indexOf('42%'))
+  expect(text.indexOf('12%')).toBeLessThan(text.indexOf('99%'))
+  expect(text.indexOf('99%')).toBeLessThan(text.indexOf('88%'))
   expect(text).not.toMatch(/undefined|NaN/)
   await ui.unmount()
 })

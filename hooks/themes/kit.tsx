@@ -94,7 +94,7 @@ export const line = (s: string) => s || ' '
 export type Gauge = { w: number; rows: number; cells: (percent: number | undefined, warn: boolean) => string }
 // What a gauge slot can show. Set per slot under /config (`gauge1`, `gauge2`,
 // `gauge3`); `auto` there picks one from what the plan reports.
-export const SOURCES = ['five-hour', 'weekly', 'model-weekly', 'context'] as const
+export const SOURCES = ['five-hour', 'weekly', 'model-weekly', 'context', 'week-pace'] as const
 export type Source = (typeof SOURCES)[number]
 // A gauge bound to one source: which it is, its label, and its reading if any.
 // A `context` dial's limit has no resetsAt and is never warned.

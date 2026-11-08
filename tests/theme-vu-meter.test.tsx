@@ -89,13 +89,14 @@ const seed = (on: Parameters<Parameters<typeof test>[1]>[1], seeded: Record<stri
 
 const has = (n: unknown, re: RegExp) => re.test(flat(n))
 
-test('vu-meter on a plan with no 5-hour window: weekly in the main gauge, context in the second', { options: { theme: 'vu-meter' } }, async ($, on) => {
+test('vu-meter on a plan with no 5-hour window: weekly in the main gauge, week pace in the second', { options: { theme: 'vu-meter' } }, async ($, on) => {
   seed(on, NO_FIVE)
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
   const tree = await ui.drawn()
   const [main, second, third] = (['main', 'second', 'third'] as const).map(s => column(tree, s))
   expect(has(main, /weekly/i) && has(main, /30%/) && has(main, /empty in 1h30m/)).toBe(true)
-  expect(has(second, /context/i) && has(second, /42%/)).toBe(true)
+  // The mock clock starts at 0, three days before the weekly reset: 4 of 7 days gone, 57%.
+  expect(has(second, /week pace/i) && has(second, /57%/)).toBe(true)
   expect(has(third, /Fable weekly/i) && has(third, /84%/)).toBe(true)
   expect(has(tree, /undefined|NaN/)).toBe(false)
   await ui.unmount()

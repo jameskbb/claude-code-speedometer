@@ -43,13 +43,18 @@ test('the digital theme draws the pane', { options: { theme: 'digital' } }, asyn
   await ui.unmount()
 })
 
-// A plan with no 5-hour window: only the weekly windows, and context at 42%.
+// A plan with no 5-hour window: only the weekly windows, the weekly one
+// resetting 2 hours in, and context at 42%.
+const RESETS_AT = new Date(2 * 3600_000).toISOString()
+const WEEK = 7 * 86_400_000
+// How far through the weekly window the clock is, as the week pace gauge reads it.
+const pace = (resetsAt: string, now: number) => Math.round((1 - (Date.parse(resetsAt) - now) / WEEK) * 100)
 const noFive = (on: Parameters<Parameters<typeof test>[1]>[1]) => {
-  mock.clock(on)
+  const clock = mock.clock(on)
   on('session.model', () => ({ value: 'claude-fable-5-1' }))
   on('session.root', () => ({ value: '/proj' }))
   on('env.get', () => ({ value: '/home/x' }))
-  const resetsAt = new Date(2 * 3600_000).toISOString()
+  const resetsAt = RESETS_AT
   const seeded: Record<string, { value: unknown; version: number }> = {
     limits: { value: { shape: 'limits-1', value: [{ kind: 'weekly_all', label: 'weekly', percent: 12, resetsAt }, { kind: 'weekly_scoped', label: 'Fable weekly', percent: 88 }] }, version: 0 },
     usage: { value: { shape: 'usage-1', value: { percent: 42, tokens: 84000, window: 200000, rateLimits: [], usd: 1.23 } }, version: 0 },
@@ -60,6 +65,7 @@ const noFive = (on: Parameters<Parameters<typeof test>[1]>[1]) => {
     const seed = seeded[e.key]
     return seed ? { value: seed } : own
   })
+  return clock
 }
 
 // The drawn tree's strings in order, and a raster's cells by key.
@@ -71,16 +77,22 @@ const raster = (n: any, key: string): string | undefined => {
   return undefined
 }
 
-test('with no 5-hour window the main gauge shows weekly and the second context', { options: { theme: 'digital' } }, async ($, on) => {
-  noFive(on)
+test('with no 5-hour window the main gauge shows weekly and the second week pace', { options: { theme: 'digital' } }, async ($, on) => {
+  const clock = noFive(on)
+  // 2 hours left of the week: 99% of it has passed.
+  const p = pace(RESETS_AT, clock.now())
+  expect(p).toBe(99)
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
   const tree = await ui.drawn()
   const all = texts(tree)
   const text = all.join('|')
   expect(all.indexOf('weekly')).toBeGreaterThanOrEqual(0)
-  expect(all.indexOf('weekly')).toBeLessThan(all.indexOf('context'))
+  expect(all.indexOf('weekly')).toBeLessThan(all.indexOf('week pace'))
+  expect(all.indexOf('week pace')).toBeLessThan(all.indexOf('Fable weekly'))
+  expect(all).not.toContain('context')
   expect(raster(tree, 'dial-0')).toBe(readoutCells(12))
-  expect(raster(tree, 'dial-1')).toBe(readoutCells(42))
+  expect(raster(tree, 'dial-1')).toBe(readoutCells(p))
+  expect(raster(tree, 'dial-2')).toBe(readoutCells(88))
   expect(text).not.toMatch(/undefined|NaN/)
   await ui.unmount()
 })

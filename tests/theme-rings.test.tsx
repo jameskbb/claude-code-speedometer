@@ -49,12 +49,15 @@ test('the rings theme draws the pane', { options: { theme: 'rings' } }, async ($
 })
 
 // A plan with no 5-hour window: only the weekly windows, and context at 42%.
+const WEEKLY_RESET = new Date(2 * 3600_000).toISOString()
+// How far through the weekly window the clock is, as the week-pace dial reads it.
+const pace = (resetsAt: string, now: number) => Math.round(Math.max(0, Math.min(1, 1 - (Date.parse(resetsAt) - now) / (7 * 86_400_000))) * 100)
 const noFive = (on: Parameters<Parameters<typeof test>[1]>[1]) => {
-  mock.clock(on)
+  const clock = mock.clock(on)
   on('session.model', () => ({ value: 'claude-fable-5-1' }))
   on('session.root', () => ({ value: '/proj' }))
   on('env.get', () => ({ value: '/home/x' }))
-  const resetsAt = new Date(2 * 3600_000).toISOString()
+  const resetsAt = WEEKLY_RESET
   const seeded: Record<string, { value: unknown; version: number }> = {
     limits: { value: { shape: 'limits-1', value: [{ kind: 'weekly_all', label: 'weekly', percent: 12, resetsAt }, { kind: 'weekly_scoped', label: 'Fable weekly', percent: 88 }] }, version: 0 },
     usage: { value: { shape: 'usage-1', value: { percent: 42, tokens: 84000, window: 200000, rateLimits: [], usd: 1.23 } }, version: 0 },
@@ -65,21 +68,27 @@ const noFive = (on: Parameters<Parameters<typeof test>[1]>[1]) => {
     const seed = seeded[e.key]
     return seed ? { value: seed } : own
   })
+  return clock
 }
 
 // The drawn tree's strings, in order.
 const texts = (n: any): string[] => (typeof n === 'string' ? [n] : n && typeof n === 'object' ? (n.children ?? []).flatMap(texts) : [])
 
-test('with no 5-hour window the main gauge shows weekly and the second context', { options: { theme: 'rings' } }, async ($, on) => {
-  noFive(on)
+test('with no 5-hour window the main gauge shows weekly and the second week pace', { options: { theme: 'rings' } }, async ($, on) => {
+  const clock = noFive(on)
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
   const tree = await ui.drawn()
   const all = texts(tree)
   const text = all.join('|')
   expect(all.indexOf('weekly')).toBeGreaterThanOrEqual(0)
-  expect(all.indexOf('weekly')).toBeLessThan(all.indexOf('context'))
+  expect(all.indexOf('weekly')).toBeLessThan(all.indexOf('week pace'))
+  expect(all).not.toContain('context')
+  // Two hours before the weekly reset: 99% of the week has gone.
+  const p = `${pace(WEEKLY_RESET, clock.now())}%`
+  expect(p).toBe('99%')
   expect(text.indexOf('12%')).toBeGreaterThanOrEqual(0)
-  expect(text.indexOf('12%')).toBeLessThan(text.indexOf('42%'))
+  expect(text.indexOf('12%')).toBeLessThan(text.indexOf(p))
+  expect(text).not.toMatch(/42%/)
   expect(text).not.toMatch(/undefined|NaN/)
   await ui.unmount()
 })

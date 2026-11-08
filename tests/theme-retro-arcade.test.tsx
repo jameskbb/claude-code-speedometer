@@ -72,13 +72,14 @@ const column = (n: unknown, slot: string): unknown => {
 }
 
 // A plan with no 5-hour window: weekly and the per-model weekly only, the weekly one warned.
+const WEEKLY_RESET = new Date(3 * 24 * 3_600_000).toISOString()
 const NO_FIVE: Record<string, { value: unknown; version: number }> = {
   warnings: { value: { shape: 'warnings-1', value: { weekly_all: 90 * 60_000 } }, version: 0 },
   limits: {
     value: {
       shape: 'limits-1',
       value: [
-        { kind: 'weekly_all', label: 'weekly', percent: 30, resetsAt: new Date(3 * 24 * 3_600_000).toISOString() },
+        { kind: 'weekly_all', label: 'weekly', percent: 30, resetsAt: WEEKLY_RESET },
         { kind: 'weekly_scoped', label: 'Fable weekly', percent: 84 },
       ],
     },
@@ -88,7 +89,7 @@ const NO_FIVE: Record<string, { value: unknown; version: number }> = {
 }
 
 const seed = (on: Parameters<Parameters<typeof test>[1]>[1], seeded: Record<string, { value: unknown; version: number }>) => {
-  mock.clock(on)
+  const clock = mock.clock(on)
   on('session.model', () => ({ value: 'claude-fable-5-1' }))
   on('session.root', () => ({ value: '/proj' }))
   on('env.get', () => ({ value: '/home/x' }))
@@ -98,17 +99,24 @@ const seed = (on: Parameters<Parameters<typeof test>[1]>[1], seeded: Record<stri
     const s = seeded[e.key]
     return s ? { value: s } : own
   })
+  return clock
 }
+// How far through the weekly window the clock is, as the week-pace dial reads it.
+const pace = (resetsAt: string, now: number) => Math.round(Math.max(0, Math.min(1, 1 - (Date.parse(resetsAt) - now) / (7 * 86_400_000))) * 100)
 
 const has = (n: unknown, re: RegExp) => re.test(flat(n))
 
-test('retro-arcade on a plan with no 5-hour window: weekly in the main gauge, context in the second', { options: { theme: 'retro-arcade' } }, async ($, on) => {
-  seed(on, NO_FIVE)
+test('retro-arcade on a plan with no 5-hour window: weekly in the main gauge, week pace in the second', { options: { theme: 'retro-arcade' } }, async ($, on) => {
+  const clock = seed(on, NO_FIVE)
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
   const tree = await ui.drawn()
   const [main, second, third] = (['main', 'second', 'third'] as const).map(s => column(tree, s))
   expect(has(main, /weekly/i) && has(main, /30%/) && has(main, /empty in 1h30m/)).toBe(true)
-  expect(has(second, /context/i) && has(second, /42%/)).toBe(true)
+  // Three days before the weekly reset: 4 of the week's 7 days have gone.
+  expect(pace(WEEKLY_RESET, clock.now())).toBe(57)
+  expect(has(second, /week pace/i) && has(second, new RegExp(`${pace(WEEKLY_RESET, clock.now())}%`))).toBe(true)
+  expect(has(second, /empty in/)).toBe(false)
+  expect(has(tree, /context/i)).toBe(false)
   expect(has(third, /Fable weekly/i) && has(third, /84%/)).toBe(true)
   expect(has(tree, /undefined|NaN/)).toBe(false)
   await ui.unmount()

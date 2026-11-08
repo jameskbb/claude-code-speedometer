@@ -61,7 +61,8 @@ test('the chrono-console theme draws the pane', { options: { theme: 'chrono-cons
 })
 
 // A plan with no 5-hour window: auto puts weekly on the main gauge and
-// context fill on the second.
+// week pace on the second. The weekly window resets two days after the
+// mock clock's 0, so five of its seven days have passed: week pace reads 71%.
 const NO_FIVE = [
   { kind: 'weekly_all', label: 'weekly', percent: 30, resetsAt: new Date(2 * 86_400_000).toISOString() },
   { kind: 'weekly_scoped', label: 'Fable weekly', percent: 10 },
@@ -83,21 +84,21 @@ const plan = (on: Parameters<Parameters<typeof test>[1]>[1]) => {
 }
 
 test('chrono-console binds the slots in order, whatever each shows', () => {
-  const [main, second, third] = dials(NO_FIVE, 'chrono-console', ['auto', 'auto', 'auto'], 42)
+  const [main, second, third] = dials(NO_FIVE, 'chrono-console', ['auto', 'auto', 'auto'], 42, false, false, 0)
   expect([main?.source, main?.label, main?.limit?.percent]).toEqual(['weekly', 'weekly', 30])
-  expect([second?.source, second?.label, second?.limit?.percent]).toEqual(['context', 'context', 42])
+  expect([second?.source, second?.label, second?.limit?.percent]).toEqual(['week-pace', 'week pace', 71])
   expect([third?.source, third?.label]).toEqual(['model-weekly', 'Fable weekly'])
   expect(main).toMatchObject({ w: RW })
   expect(second).toMatchObject({ w: RW })
 })
 
-test('chrono-console on a plan with no 5-hour window: weekly on the main gauge, context on the second', { options: { theme: 'chrono-console' } }, async ($, on) => {
+test('chrono-console on a plan with no 5-hour window: weekly on the main gauge, week pace on the second', { options: { theme: 'chrono-console' } }, async ($, on) => {
   plan(on)
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
   expect(await ui.find({ type: 'Text', text: / WEEKLY / })).toBeDefined()
   expect(await ui.find({ type: 'Text', text: / 30%$/ })).toBeDefined()
-  expect(await ui.find({ type: 'Text', text: / CONTEXT / })).toBeDefined()
-  expect(await ui.find({ type: 'Text', text: / 42%$/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: / WEEK PACE / })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: / 71%$/ })).toBeDefined()
   expect(await ui.find({ type: 'Text', text: / FABLE WEEKLY / })).toBeDefined()
   expect(await ui.find({ type: 'Text', text: /5-hour/ })).toBeUndefined()
   expect(await ui.find({ type: 'Text', text: /undefined|NaN/ })).toBeUndefined()

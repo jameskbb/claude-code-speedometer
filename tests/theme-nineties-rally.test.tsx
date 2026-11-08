@@ -44,13 +44,13 @@ test('the nineties-rally theme draws the pane', { options: { theme: 'nineties-ra
 })
 
 // A plan with no 5-hour window: auto puts weekly on the main gauge and
-// context fill on the second.
+// week pace on the second.
 const NO_FIVE = [
   { kind: 'weekly_all', label: 'weekly', percent: 30, resetsAt: new Date(2 * 86_400_000).toISOString() },
   { kind: 'weekly_scoped', label: 'Fable weekly', percent: 10 },
 ]
 const plan = (on: Parameters<Parameters<typeof test>[1]>[1]) => {
-  mock.clock(on)
+  const clock = mock.clock(on)
   on('session.model', () => ({ value: 'claude-fable-5-1' }))
   on('session.root', () => ({ value: '/proj' }))
   on('env.get', () => ({ value: '/home/x' }))
@@ -63,22 +63,27 @@ const plan = (on: Parameters<Parameters<typeof test>[1]>[1]) => {
     if (!('value' in own) || !own.value || own.value.value !== undefined) return own
     return e.key in seeded ? { value: { value: seeded[e.key], version: 0 } } : own
   })
+  return clock
 }
+// How far through the weekly window the clock is, as the week-pace dial reads it.
+const pace = (resetsAt: string, now: number) => Math.round(Math.max(0, Math.min(1, 1 - (Date.parse(resetsAt) - now) / (7 * 86_400_000))) * 100)
 
 test('nineties-rally binds the slots in order, whatever each shows', () => {
-  const [main, second, third] = dials(NO_FIVE, 'nineties-rally', ['auto', 'auto', 'auto'], 42)
+  // Two days before the weekly reset: 5 of the week's 7 days have gone.
+  const [main, second, third] = dials(NO_FIVE, 'nineties-rally', ['auto', 'auto', 'auto'], 42, false, false, 0)
   expect([main?.source, main?.label, main?.limit?.percent]).toEqual(['weekly', 'weekly', 30])
-  expect([second?.source, second?.label, second?.limit?.percent]).toEqual(['context', 'context', 42])
+  expect([second?.source, second?.label, second?.limit?.percent]).toEqual(['week-pace', 'week pace', 71])
   expect([third?.source, third?.label]).toEqual(['model-weekly', 'Fable weekly'])
   expect(main).toMatchObject({ w: 24 })
   expect(second).toMatchObject({ w: 18 })
 })
 
-test('nineties-rally on a plan with no 5-hour window: weekly on the main gauge, context on the second', { options: { theme: 'nineties-rally' } }, async ($, on) => {
-  plan(on)
+test('nineties-rally on a plan with no 5-hour window: weekly on the main gauge, week pace on the second', { options: { theme: 'nineties-rally' } }, async ($, on) => {
+  const clock = plan(on)
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
   expect(await ui.find({ type: 'Text', text: /30% weekly/ })).toBeDefined()
-  expect(await ui.find({ type: 'Text', text: /42% context/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: new RegExp(`${pace(NO_FIVE[0]!.resetsAt, clock.now())}% week pace`) })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /42% context/ })).toBeUndefined()
   expect(await ui.find({ type: 'Text', text: /10% Fable weekly/ })).toBeDefined()
   expect(await ui.find({ type: 'Text', text: /5-hour/ })).toBeUndefined()
   expect(await ui.find({ type: 'Text', text: /undefined|NaN/ })).toBeUndefined()

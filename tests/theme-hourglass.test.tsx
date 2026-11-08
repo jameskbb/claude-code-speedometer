@@ -67,7 +67,11 @@ const column = (n: unknown, slot: string): unknown => {
   return undefined
 }
 
-// A plan with no 5-hour window: weekly and the per-model weekly only, the weekly one warned.
+// A plan with no 5-hour window: weekly and the per-model weekly only, the weekly one
+// warned and resetting 3 days in.
+const WEEK = 7 * 86_400_000
+// How far through the weekly window the clock is, as the week pace gauge reads it.
+const pace = (resetsAt: string, now: number) => Math.round((1 - (Date.parse(resetsAt) - now) / WEEK) * 100)
 const NO_FIVE: Record<string, { value: unknown; version: number }> = {
   warnings: { value: { shape: 'warnings-1', value: { weekly_all: 90 * 60_000 } }, version: 0 },
   limits: {
@@ -84,7 +88,7 @@ const NO_FIVE: Record<string, { value: unknown; version: number }> = {
 }
 
 const seed = (on: Parameters<Parameters<typeof test>[1]>[1], seeded: Record<string, { value: unknown; version: number }>) => {
-  mock.clock(on)
+  const clock = mock.clock(on)
   on('session.model', () => ({ value: 'claude-fable-5-1' }))
   on('session.root', () => ({ value: '/proj' }))
   on('env.get', () => ({ value: '/home/x' }))
@@ -94,17 +98,22 @@ const seed = (on: Parameters<Parameters<typeof test>[1]>[1], seeded: Record<stri
     const s = seeded[e.key]
     return s ? { value: s } : own
   })
+  return clock
 }
 
 const has = (n: unknown, re: RegExp) => re.test(flat(n))
 
-test('hourglass on a plan with no 5-hour window: weekly in the main gauge, context in the second', { options: { theme: 'hourglass' } }, async ($, on) => {
-  seed(on, NO_FIVE)
+test('hourglass on a plan with no 5-hour window: weekly in the main gauge, week pace in the second', { options: { theme: 'hourglass' } }, async ($, on) => {
+  const clock = seed(on, NO_FIVE)
+  // 3 days left of the week: 57% of it has passed.
+  const p = pace(new Date(3 * 24 * 3_600_000).toISOString(), clock.now())
+  expect(p).toBe(57)
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
   const tree = await ui.drawn()
   const [main, second, third] = (['main', 'second', 'third'] as const).map(s => byKey(tree, `legend-${s}`))
   expect(has(main, /weekly/i) && has(main, /30%/) && has(main, /empty in 1h30m/)).toBe(true)
-  expect(has(second, /context/i) && has(second, /42%/)).toBe(true)
+  expect(has(second, /week pace/i) && has(second, new RegExp(`${p}%`))).toBe(true)
+  expect(has(second, /context|empty in/i)).toBe(false)
   expect(has(third, /Fable weekly/i) && has(third, /84%/)).toBe(true)
   expect(has(tree, /undefined|NaN/)).toBe(false)
   await ui.unmount()

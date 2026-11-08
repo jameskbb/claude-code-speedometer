@@ -47,13 +47,16 @@ test('the fifties-chrome theme draws the pane', { options: { theme: 'fifties-chr
 })
 
 // A plan with no 5-hour window: auto puts weekly on the main gauge and
-// context fill on the second.
+// week pace on the second. The weekly window resets 2 days in.
+const WEEK = 7 * 86_400_000
+// How far through the weekly window the clock is, as the week pace gauge reads it.
+const pace = (resetsAt: string, now: number) => Math.round((1 - (Date.parse(resetsAt) - now) / WEEK) * 100)
 const NO_FIVE = [
   { kind: 'weekly_all', label: 'weekly', percent: 30, resetsAt: new Date(2 * 86_400_000).toISOString() },
   { kind: 'weekly_scoped', label: 'Fable weekly', percent: 10 },
 ]
 const plan = (on: Parameters<Parameters<typeof test>[1]>[1]) => {
-  mock.clock(on)
+  const clock = mock.clock(on)
   on('session.model', () => ({ value: 'claude-fable-5-1' }))
   on('session.root', () => ({ value: '/proj' }))
   on('env.get', () => ({ value: '/home/x' }))
@@ -66,24 +69,30 @@ const plan = (on: Parameters<Parameters<typeof test>[1]>[1]) => {
     if (!('value' in own) || !own.value || own.value.value !== undefined) return own
     return e.key in seeded ? { value: { value: seeded[e.key], version: 0 } } : own
   })
+  return clock
 }
 
 test('fifties-chrome binds the slots in order, whatever each shows', () => {
-  const [main, second, third] = dials(NO_FIVE, 'fifties-chrome', ['auto', 'auto', 'auto'], 42)
+  // At the epoch, 2 days are left of the week: 71% of it has passed.
+  const [main, second, third] = dials(NO_FIVE, 'fifties-chrome', ['auto', 'auto', 'auto'], 42, false, false, 0)
   expect([main?.source, main?.label, main?.limit?.percent]).toEqual(['weekly', 'weekly', 30])
-  expect([second?.source, second?.label, second?.limit?.percent]).toEqual(['context', 'context', 42])
+  expect([second?.source, second?.label, second?.limit?.percent]).toEqual(['week-pace', 'week pace', 71])
+  expect(second?.limit?.resetsAt).toBe(NO_FIVE[0]!.resetsAt)
   expect([third?.source, third?.label]).toEqual(['model-weekly', 'Fable weekly'])
   expect(main).toMatchObject({ w: RW })
   expect(second).toMatchObject({ w: GW })
 })
 
-test('fifties-chrome on a plan with no 5-hour window: weekly on the main gauge, context on the second', { options: { theme: 'fifties-chrome' } }, async ($, on) => {
-  plan(on)
+test('fifties-chrome on a plan with no 5-hour window: weekly on the main gauge, week pace on the second', { options: { theme: 'fifties-chrome' } }, async ($, on) => {
+  const clock = plan(on)
+  const p = pace(NO_FIVE[0]!.resetsAt, clock.now())
+  expect(p).toBe(71)
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
   expect(await ui.find({ type: 'Text', text: /^weekly$/ })).toBeDefined()
   expect(await ui.find({ type: 'Text', text: /^30%$/ })).toBeDefined()
-  expect(await ui.find({ type: 'Text', text: /^context$/ })).toBeDefined()
-  expect(await ui.find({ type: 'Text', text: /^42%$/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /^week pace$/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: new RegExp(`^${p}%$`) })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /^context$/ })).toBeUndefined()
   expect(await ui.find({ type: 'Text', text: /^Fable weekly$/ })).toBeDefined()
   expect(await ui.find({ type: 'Text', text: /5-hour/ })).toBeUndefined()
   expect(await ui.find({ type: 'Text', text: /undefined|NaN/ })).toBeUndefined()

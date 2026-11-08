@@ -29,7 +29,7 @@ Answer `y` to add the marketplace, then pick a scope. The pane opens on its own 
 
 ## What you see
 
-- **The pane**: three gauges beside the chat. By default they show the 5-hour window, the weekly window and the weekly per-model window (Fable, Opus, whichever your plan scopes), each with its reset time; on a plan with no 5-hour limit, the weekly window and context fill; with no plan windows at all (an API key), context fill on the main gauge. Each gauge can be set to any of these under `/config` (**Main gauge**, **Second gauge**, **Third gauge**). The per-model gauge has a reading only when **Read per-model limits** is on. Meters fill green, then yellow past 50%, then red past 80%.
+- **The pane**: three gauges beside the chat. By default they show the 5-hour window, the weekly window and the weekly per-model window (Fable, Opus, whichever your plan scopes), each with its reset time; on a plan with no 5-hour limit, the weekly window and week pace (how far through the week the clock is, so 40% used at 60% pace means you are under budget); with no plan windows at all (an API key), context fill on the main gauge. Each gauge can be set to any of these under `/config` (**Main gauge**, **Second gauge**, **Third gauge**). The per-model gauge has a reading only when **Read per-model limits** is on. Meters fill green, then yellow past 50%, then red past 80%.
 - **The band**: one line above the prompt with context usage, an activity badge, session cost, turn stats, running subagents, the [ponytail](https://github.com/DietrichGebert/ponytail) level when that plugin is active for the project, and `! <window>` for each window on course to run out before it resets, whether or not one of the three gauges shows it. The engine's `[-]` collapses it.
 - **Warnings**: a window on course to run out before it resets turns red and says when, and a toast warns at 80% and 90% context.
 
@@ -418,8 +418,8 @@ Under `/config`:
 | Row | Default | What it does |
 |---|---|---|
 | **Gauge cluster** | `classic` | The look of the pane: any id from [the gallery](#the-gallery). |
-| **Main gauge** | `auto` | What the main gauge shows (every theme but `minimal`, which has no gauges): `five-hour`, `weekly`, `model-weekly` or `context` (context window fill). `auto` shows the 5-hour window, the weekly window on a plan with no 5-hour limit, or context fill when the session reports no plan windows at all (an API key). |
-| **Second gauge** | `auto` | The same choices. `auto` shows the weekly window, or context fill on a plan with no 5-hour limit. |
+| **Main gauge** | `auto` | What the main gauge shows (every theme but `minimal`, which has no gauges): `five-hour`, `weekly`, `model-weekly`, `context` (context window fill) or `week-pace` (how far through the weekly window the clock is). `auto` shows the 5-hour window, the weekly window on a plan with no 5-hour limit, or context fill when the session reports no plan windows at all (an API key). |
+| **Second gauge** | `auto` | The same choices. `auto` shows the weekly window, or week pace on a plan with no 5-hour limit. |
 | **Third gauge** | `auto` | The same choices. `auto` shows the per-model weekly window, which needs **Read per-model limits** on. An `auto` slot never repeats a source another slot is set to. |
 | **Read per-model limits** | off | Ask the usage endpoint `GET https://api.anthropic.com/api/oauth/usage`, at most once a minute, for the per-model weekly window, using the session's own sign-in through Claude Code; the plugin never sees the token. Off: no network request is made, and only the 5-hour and weekly windows Claude Code reports (and context fill) can be shown. See [Usage endpoint](#usage-endpoint). |
 | **Count every hour** | on | Project burn rate over every hour of every day. Off: only the work day set below, Monday to Friday unless **Count weekends** is on. |

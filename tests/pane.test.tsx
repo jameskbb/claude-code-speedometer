@@ -1,6 +1,6 @@
 import { expect, mock, test } from 'claude-code/testing'
 
-import { afterWorking, barCells, categoryOf, dialCells, dialRows, dials, faceCells, FR, FW, minorCells, MJ, MN, parseHours, project, slotOf, sources, SR, SW, sweepCells, tachCells, THEMES, workingMs } from '../hooks/register'
+import { afterWorking, bind, barCells, categoryOf, dialCells, dialRows, dials, faceCells, FR, FW, minorCells, MJ, MN, parseHours, project, slotOf, sources, SR, SW, sweepCells, tachCells, THEMES, workingMs } from '../hooks/register'
 
 const PANE = {
   plugin: 'speedometer',
@@ -305,12 +305,12 @@ test('with the endpoint on but failing, the engine windows stay live and burn ra
   expect((stored.history as Record<string, { p: number }[]>).session.map(s => s.p)).toEqual([40, 45])
 })
 
-test('auto slots follow the plan: no 5-hour window moves weekly to the main gauge and context to the second', () => {
+test('auto slots follow the plan: no 5-hour window moves weekly to the main gauge and week pace to the second', () => {
   const week = { kind: 'weekly_all', label: 'weekly', percent: 30 }
   const five = { kind: 'session', label: '5-hour', percent: 60 }
   const scoped = { kind: 'weekly_scoped', label: 'Fable weekly', percent: 10 }
   expect(sources(['auto', 'auto', 'auto'], [five, week, scoped])).toEqual(['five-hour', 'weekly', 'model-weekly'])
-  expect(sources(['auto', 'auto', 'auto'], [week, scoped])).toEqual(['weekly', 'context', 'model-weekly'])
+  expect(sources(['auto', 'auto', 'auto'], [week, scoped])).toEqual(['weekly', 'week-pace', 'model-weekly'])
   // Before any reading, auto keeps the usual order.
   expect(sources(['auto', 'auto', 'auto'], [])).toEqual(['five-hour', 'weekly', 'model-weekly'])
   // A set slot wins over auto, and auto skips a source a set slot shows.
@@ -324,7 +324,12 @@ test('auto slots follow the plan: no 5-hour window moves weekly to the main gaug
   // A window that turns up wins over the planless order.
   expect(sources(['auto', 'auto', 'auto'], [five], false, true)).toEqual(['five-hour', 'weekly', 'model-weekly'])
   const d = dials([week, scoped], 'classic', ['auto', 'auto', 'auto'], 42)
-  expect(d.map(x => [x.source, x.label, x.limit?.percent])).toEqual([['weekly', 'weekly', 30], ['context', 'context', 42], ['model-weekly', 'Fable weekly', 10]])
+  expect(d.map(x => [x.source, x.label, x.limit?.percent])).toEqual([['weekly', 'weekly', 30], ['week-pace', 'week pace', undefined], ['model-weekly', 'Fable weekly', 10]])
+  // Week pace: how much of the seven days before the weekly reset has passed.
+  const reset = { ...week, resetsAt: new Date(3 * 86_400_000).toISOString() }
+  expect(bind('week-pace', [reset], undefined, 0).limit?.percent).toBe(57)
+  expect(bind('week-pace', [reset], undefined, 3 * 86_400_000).limit?.percent).toBe(100)
+  expect(bind('week-pace', [reset], undefined, -4 * 86_400_000).limit?.percent).toBe(0)
   expect(dials([week], 'classic', ['auto', 'auto', 'auto'])[1]?.limit).toBeUndefined()
   expect(slotOf('weekly')).toBe('weekly')
   expect(slotOf('nonsense')).toBe('auto')
@@ -356,17 +361,17 @@ const clean = async (ui: { find: (q: { type: 'Text'; text: RegExp }) => Promise<
   expect(await ui.find({ type: 'Text', text: /5-hour/ })).toBeUndefined()
 }
 
-test('classic on a plan with no 5-hour window: weekly on the main gauge, context on the second', async ($, on) => {
+test('classic on a plan with no 5-hour window: weekly on the main gauge, week pace on the second', async ($, on) => {
   noFive(on)
   for (const surface of ['terminal', 'desktop'] as const) {
     const ui = await $.ui.mount({ ...PANE, surface })
     if (surface === 'terminal') {
       expect(await ui.find({ type: 'Text', text: /^\s*weekly\s*$/ })).toBeDefined()
-      expect(await ui.find({ type: 'Text', text: /^\s*context\s*$/ })).toBeDefined()
-      expect(await ui.find({ type: 'Text', text: /^\s*42%\s*$/ })).toBeDefined()
+      expect(await ui.find({ type: 'Text', text: /^\s*week pace\s*$/ })).toBeDefined()
+      expect(await ui.find({ type: 'Text', text: /^\s*57%\s*$/ })).toBeDefined()
     } else {
       expect((await ui.find({ type: 'Text', text: /^weekly/ }))?.text).toContain('30%')
-      expect((await ui.find({ type: 'Text', text: /^context/ }))?.text).toContain('42%')
+      expect((await ui.find({ type: 'Text', text: /^week pace/ }))?.text).toContain('57%')
     }
     expect(await ui.find({ type: 'Text', text: /no reading/ })).toBeUndefined()
     await clean(ui)
@@ -396,13 +401,13 @@ test('a session that reports no windows at all puts context on the main gauge on
   expect(await label()).toMatch(/^5-hour/)
 })
 
-test('eighties-digital-dash follows the slots: weekly sweep, context in the fuel column', { options: { theme: 'eighties-digital-dash' } }, async ($, on) => {
+test('eighties-digital-dash follows the slots: weekly sweep, week pace in the fuel column', { options: { theme: 'eighties-digital-dash' } }, async ($, on) => {
   noFive(on, { weekly_all: 3_600_000 })
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
   expect(await ui.find({ type: 'Text', text: /^weekly$/ })).toBeDefined()
   expect(await ui.find({ type: 'Text', text: /^30%$/ })).toBeDefined()
-  expect(await ui.find({ type: 'Text', text: /^CONTEXT 42%$/ })).toBeDefined()
-  // The warned weekly dial prints its own empty-in time; context is never warned.
+  expect(await ui.find({ type: 'Text', text: /^WEEK PACE 57%$/ })).toBeDefined()
+  // The warned weekly dial prints its own empty-in time; week pace is never warned.
   expect(await ui.find({ type: 'Text', text: /! empty in 1h/ })).toBeDefined()
   expect(await ui.find({ type: 'Text', text: /RESERVE/ })).toBeUndefined()
   await clean(ui)
@@ -423,9 +428,8 @@ test('silver-bezel follows the slots: the fuel gauge reads what is left of the s
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
   expect(await ui.find({ type: 'Text', text: /^weekly$/ })).toBeDefined()
   expect(await ui.find({ type: 'Text', text: /^30%$/ })).toBeDefined()
-  // Context has no reset, so its caption ends at the percent.
-  expect(await ui.find({ type: 'Text', text: /^context 42%$/ })).toBeDefined()
-  expect(await ui.find({ type: 'Text', text: /^LEFT 58%$/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /^week pace 57% ↻/ })).toBeDefined()
+  expect(await ui.find({ type: 'Text', text: /^LEFT 43%$/ })).toBeDefined()
   expect(await ui.find({ type: 'Text', text: /WK LEFT/ })).toBeUndefined()
   await clean(ui)
   await ui.unmount()

@@ -12,7 +12,8 @@ const PANE = {
 const size = (cells: string) => Uint8Array.from(atob(cells), c => c.charCodeAt(0)).length
 
 // A plan with no 5-hour window: auto puts weekly on the main gauge and
-// context on the second, with the model's weekly window on the third.
+// week pace on the second, with the model's weekly window on the third. The
+// mock clock starts at 0, 2h14m before the weekly reset: 99% of the week gone.
 const NO_FIVE: Record<string, { value: unknown; version: number }> = {
   warnings: { value: { shape: 'warnings-1', value: { weekly_all: 90 * 60_000 } }, version: 0 },
   limits: {
@@ -68,20 +69,20 @@ test('the spartan-supercar theme draws the pane', { options: { theme: 'spartan-s
   await ui.unmount()
 })
 
-test('spartan-supercar on a plan with no 5-hour window: weekly on the main gauge, context on the second', { options: { theme: 'spartan-supercar' } }, async ($, on) => {
+test('spartan-supercar on a plan with no 5-hour window: weekly on the main gauge, week pace on the second', { options: { theme: 'spartan-supercar' } }, async ($, on) => {
   seedNoFive(on)
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
   const t = texts(await ui.drawn())
   expect(t.some(s => /undefined|NaN/.test(s))).toBe(false)
   // Left to right: the second gauge, the main gauge, the third; each percent sits above its label.
   const at = (label: string) => t.findIndex(s => s === label)
-  expect(at('context')).toBeGreaterThan(-1)
-  expect(t[at('context') - 1]).toBe('42%')
+  expect(at('week pace')).toBeGreaterThan(-1)
+  expect(t[at('week pace') - 1]).toBe('99%')
   expect(t[at('weekly') - 1]).toBe('30%')
   expect(t[at('Fable weekly') - 1]).toBe('10%')
-  expect(at('context')).toBeLessThan(at('weekly'))
+  expect(at('week pace')).toBeLessThan(at('weekly'))
   expect(at('weekly')).toBeLessThan(at('Fable weekly'))
-  // Only the weekly window is warned; the context dial never is.
+  // Only the weekly window is warned; the week pace dial never is.
   expect(t.filter(s => /empty in 1h30m/.test(s)).length).toBe(1)
   expect(t.some(s => /↻ 2h14m/.test(s))).toBe(true)
   await ui.unmount()

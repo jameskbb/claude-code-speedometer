@@ -19,7 +19,11 @@ const PANE = {
 const size = (cells: string) => Uint8Array.from(atob(cells), c => c.charCodeAt(0)).length
 
 // A plan with no 5-hour window: auto puts weekly on the main gauge and
-// context on the second, with the model's weekly window on the third.
+// week pace on the second, with the model's weekly window on the third.
+// The weekly window resets 2h14m in.
+const WEEK = 7 * 86_400_000
+// How far through the weekly window the clock is, as the week pace gauge reads it.
+const pace = (resetsAt: string, now: number) => Math.round((1 - (Date.parse(resetsAt) - now) / WEEK) * 100)
 const NO_FIVE: Record<string, { value: unknown; version: number }> = {
   warnings: { value: { shape: 'warnings-1', value: { weekly_all: 90 * 60_000 } }, version: 0 },
   limits: {
@@ -35,7 +39,7 @@ const NO_FIVE: Record<string, { value: unknown; version: number }> = {
   usage: { value: { shape: 'usage-1', value: { percent: 42, tokens: 84000, window: 200000, rateLimits: [], usd: 1.23 } }, version: 0 },
 }
 const seedNoFive = (on: Parameters<Parameters<typeof test>[1]>[1]) => {
-  mock.clock(on)
+  const clock = mock.clock(on)
   on('session.model', () => ({ value: 'claude-fable-5-1' }))
   on('session.root', () => ({ value: '/proj' }))
   on('env.get', () => ({ value: '/home/x' }))
@@ -45,6 +49,7 @@ const seedNoFive = (on: Parameters<Parameters<typeof test>[1]>[1]) => {
     const s = NO_FIVE[e.key]
     return s ? { value: s } : own
   })
+  return clock
 }
 // Every Text's string in the drawn tree, in drawing order.
 type Node = { type?: string; children?: unknown[] }
@@ -86,21 +91,26 @@ test('the hex-supercar theme draws the pane', { options: { theme: 'hex-supercar'
   await ui.unmount()
 })
 
-test('hex-supercar on a plan with no 5-hour window: weekly on the main gauge, context on the second', { options: { theme: 'hex-supercar' } }, async ($, on) => {
-  seedNoFive(on)
+test('hex-supercar on a plan with no 5-hour window: weekly on the main gauge, week pace on the second', { options: { theme: 'hex-supercar' } }, async ($, on) => {
+  const clock = seedNoFive(on)
+  // 2h14m left of the week: 99% of it has passed.
+  const p = pace(new Date(2 * 3600_000 + 14 * 60_000).toISOString(), clock.now())
+  expect(p).toBe(99)
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
   const t = texts(await ui.drawn())
   expect(t.some(s => /undefined|NaN/.test(s))).toBe(false)
   // The rev display is the main gauge, with its label and percent on one line.
   expect(t).toContain('weekly 30%')
   const at = (label: string) => t.findIndex(s => s === label)
-  expect(t[at('context') - 1]).toBe('42%')
+  expect(at('week pace')).toBeGreaterThan(-1)
+  expect(t[at('week pace') - 1]).toBe(`${p}%`)
+  expect(at('context')).toBe(-1)
   expect(t[at('Fable weekly') - 1]).toBe('10%')
-  expect(at('context')).toBeLessThan(t.indexOf('weekly 30%'))
+  expect(at('week pace')).toBeLessThan(t.indexOf('weekly 30%'))
   // The main gauge picks the drive mode: 30% is ROAD.
   expect(t).toContain('ROAD')
   expect(t).toContain('sport')
-  // Only the weekly window is warned; the context dial never is.
+  // Only the weekly window is warned; the week pace dial never is.
   expect(t.filter(s => /empty in 1h30m/.test(s)).length).toBe(1)
   expect(t.some(s => /↻ 2h14m/.test(s))).toBe(true)
   await ui.unmount()

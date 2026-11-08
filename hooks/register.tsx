@@ -236,22 +236,29 @@ export const slotOf = (v: unknown): Slot => (typeof v === 'string' && (SOURCES a
 
 // What each slot shows. `auto` follows the plan: 5-hour, weekly, model weekly;
 // on a plan that reports a weekly window but has never reported a 5-hour one
-// this session, weekly moves to the main gauge and context fill takes the
-// second. `sawFive` makes that choice stick, so a reading that happens to lack
+// this session, weekly moves to the main gauge and week pace (how far through
+// the weekly window the clock is) takes the second. `sawFive` makes that choice stick, so a reading that happens to lack
 // the 5-hour window never reshuffles the gauges. A `planless` session (one that
 // has had a reply measured and never reported any window, as with an API key)
 // puts context fill on the main gauge. Auto slots skip any source a set slot
 // already shows.
 export function sources(slots: readonly [Slot, Slot, Slot], all: SpeedoLimit[], sawFive = false, planless = false): [Source, Source, Source] {
   const noFive = !sawFive && !all.some(r => r.kind === 'session') && all.some(r => r.kind === 'weekly_all')
-  const order: Source[] = planless && all.length === 0 ? ['context', 'five-hour', 'weekly', 'model-weekly']
-    : noFive ? ['weekly', 'context', 'model-weekly', 'five-hour'] : ['five-hour', 'weekly', 'model-weekly', 'context']
+  const order: Source[] = planless && all.length === 0 ? ['context', 'five-hour', 'weekly', 'model-weekly', 'week-pace']
+    : noFive ? ['weekly', 'week-pace', 'model-weekly', 'context', 'five-hour'] : ['five-hour', 'weekly', 'model-weekly', 'context', 'week-pace']
   const free = order.filter(o => !slots.includes(o))
   return slots.map(s => (s === 'auto' ? (free.shift() ?? 'context') : s)) as [Source, Source, Source]
 }
 
 // One slot's dial, without its gauge shape: the source's label and reading.
-export function bind(source: Source, all: SpeedoLimit[], context?: number): Omit<Dial, keyof Gauge> {
+const WEEK_MS = 7 * 86_400_000
+export function bind(source: Source, all: SpeedoLimit[], context?: number, now = Date.now()): Omit<Dial, keyof Gauge> {
+  if (source === 'week-pace') {
+    // How much of the weekly window has passed, to read against weekly used.
+    const reset = all.find(r => r.kind === 'weekly_all')?.resetsAt
+    const left = reset ? Date.parse(reset) - now : NaN
+    return { source, label: 'week pace', limit: Number.isFinite(left) ? { kind: 'week_pace', label: 'week pace', percent: Math.round(Math.max(0, Math.min(1, 1 - left / WEEK_MS)) * 100), resetsAt: reset } : undefined }
+  }
   if (source === 'context') return { source, label: 'context', limit: context === undefined ? undefined : { kind: 'context', label: 'context', percent: context } }
   if (source === 'model-weekly') {
     const scoped = all.find(r => r.kind === 'weekly_scoped')
@@ -261,8 +268,8 @@ export function bind(source: Source, all: SpeedoLimit[], context?: number): Omit
 }
 
 // The three dials, in slot order, shaped by the theme.
-export function dials(all: SpeedoLimit[], theme: Theme, slots: readonly [Slot, Slot, Slot] = ['auto', 'auto', 'auto'], context?: number, sawFive = false, planless = false): Dial[] {
-  const [main, second, third] = sources(slots, all, sawFive, planless).map(s => bind(s, all, context)) as [Omit<Dial, keyof Gauge>, Omit<Dial, keyof Gauge>, Omit<Dial, keyof Gauge>]
+export function dials(all: SpeedoLimit[], theme: Theme, slots: readonly [Slot, Slot, Slot] = ['auto', 'auto', 'auto'], context?: number, sawFive = false, planless = false, now = Date.now()): Dial[] {
+  const [main, second, third] = sources(slots, all, sawFive, planless).map(s => bind(s, all, context, now)) as [Omit<Dial, keyof Gauge>, Omit<Dial, keyof Gauge>, Omit<Dial, keyof Gauge>]
   const extra = EXTRA.find(t => t.id === theme)
   if (extra) return extra.gauges(main, second, third)
   return theme === 'eighties-digital-dash' ? [{ ...main, ...sweep }, { ...second, ...fuel }, { ...third, ...tach }]
@@ -631,7 +638,7 @@ export const register: Register = (on, options) => {
     const centered = (text: string, w: number) => ' '.repeat(Math.max(0, Math.floor((w - text.length) / 2))) + text
     if ((l ?? []).some(r => r.kind === 'session')) sawFive = true
     if (l?.length) sawAny = true
-    const all = dials(l ?? [], theme, slots, p, sawFive, measured && !sawAny)
+    const all = dials(l ?? [], theme, slots, p, sawFive, measured && !sawAny, now)
     const facts = ({ Box, Text, Button }: Pick<ReturnType<typeof $.ui.resolve>, 'Box' | 'Text' | 'Button'>) => [
       <Text>
         <Text dimColor>{'context  '}</Text>
