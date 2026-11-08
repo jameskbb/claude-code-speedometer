@@ -140,26 +140,3 @@ export type ThemeDef = {
   // The pane's tree on the terminal surface.
   draw: (ctx: ThemeCtx) => unknown
 }
-
-// A stand-in theme: three classic dials in a row. A theme file
-// starts from this and replaces both halves.
-export const placeholder = (id: string, category: Category): ThemeDef => ({
-  id,
-  category,
-  gauges: (main, second, third) => [{ ...main, ...arc(DW) }, { ...second, ...arc(DW) }, { ...third, ...arc(DW) }],
-  draw: ({ ui: { Box, Text, Raster }, main, second, third, warned, reset, empty }) => (
-    <Box flexDirection="column">
-      <Box flexDirection="row" columnGap={2}>
-        {[main, second, third].map((d, i) => (
-          <Box flexDirection="column" width={d.w} flexShrink={0} alignItems="center">
-            <Raster key={`dial-${i}`} columns={d.w} rows={d.rows} cells={d.cells(d.limit?.percent, warned(d))} />
-            <Text color={d.limit ? zone(d.limit.percent) : 'inactive'} bold>{reading(d)}</Text>
-            <Text dimColor wrap="truncate-end">{d.label}</Text>
-            <Text dimColor wrap="truncate-end">{line(reset(d))}</Text>
-            <Text color="error" bold wrap="truncate-end">{warned(d) ? empty(d) : ' '}</Text>
-          </Box>
-        ))}
-      </Box>
-    </Box>
-  ),
-})
